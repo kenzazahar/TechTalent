@@ -37,7 +37,7 @@
               <button class="action-btn btn-explore" @click="$router.push(`/dashboard/offers/${offer.id}`)">
                 Explorer
               </button>
-              <button class="action-btn btn-manage">
+              <button class="action-btn btn-manage" @click="$router.push(`/dashboard/offers/${offer.id}/candidates`)">
                 Gestion candidatures
               </button>
             </div>

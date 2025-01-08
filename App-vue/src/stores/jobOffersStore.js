@@ -5,10 +5,10 @@ import { defineStore } from 'pinia';
 export const useJobOffersStore = defineStore('jobOffers', () => {
   const publishedOffers = ref([
     {
-      id: 1,
-      title: "Développeur Full Stack",
-      location: "CDI - Paris",
-      image: "/src/assets/img/full.jpg"
+      id: 13,
+      title: "Responsable Sécurité Informatique",
+      location: "CDI - Montpellier",
+      image: "/src/assets/img/secur.jpg"
     },
     {
       id: 2,
@@ -23,6 +23,40 @@ export const useJobOffersStore = defineStore('jobOffers', () => {
       image: "/src/assets/img/ds.jpg"
     },
     {
+      id: 14,
+      title: "Développeur Backend",
+      location: "Freelance - Grenoble",
+      image: "/src/assets/img/back.jpg"
+    },
+    {
+      id: 16,
+      title: "Scrum Master",
+      location: "CDI - Marseille",
+      image: "/src/assets/img/scrum.jpg"
+    },
+    {
+      id: 8,
+      title: "Ingénieur Réseaux",
+      location: "CDI - Nice",
+      image: "/src/assets/img/reseau.jpg"
+    },
+    {
+      id: 5,
+      title: "Consultant en Cybersécurité",
+      location: "Stage - Lille",
+      image: "/src/assets/img/cybersecurite.jpg"
+    },
+  ]);
+
+  const draftOffers = ref([
+    
+    {
+      id: 1,
+      title: "Développeur Full Stack",
+      location: "CDI - Paris",
+      image: "/src/assets/img/full.jpg"
+    },
+    {
       id: 10,
       title: "Développeur Mobile",
       location: "Freelance - Lyon",
@@ -35,33 +69,6 @@ export const useJobOffersStore = defineStore('jobOffers', () => {
       image: "/src/assets/img/teste.jpg"
     },
     {
-      id: 13,
-      title: "Responsable Sécurité Informatique",
-      location: "CDI - Montpellier",
-      image: "/src/assets/img/secur.jpg"
-    },
-    {
-      id: 14,
-      title: "Développeur Backend",
-      location: "Freelance - Grenoble",
-      image: "/src/assets/img/back.jpg"
-    },
-    {
-      id: 16,
-      title: "Scrum Master",
-      location: "CDI - Marseille",
-      image: "/src/assets/img/scrum.jpg"
-    }
-  ]);
-
-  const draftOffers = ref([
-    {
-      id: 5,
-      title: "Consultant en Cybersécurité",
-      location: "Stage - Lille",
-      image: "/src/assets/img/cybersecurite.jpg"
-    },
-    {
       id: 6,
       title: "Développeur Front-End",
       location: "CDI - Toulouse",
@@ -72,13 +79,8 @@ export const useJobOffersStore = defineStore('jobOffers', () => {
       title: "Architecte Cloud",
       location: "Freelance - Nantes",
       image: "/src/assets/img/cloud.jpg"
-    },
-    {
-      id: 8,
-      title: "Ingénieur Réseaux",
-      location: "CDI - Nice",
-      image: "/src/assets/img/reseau.jpg"
     }
+    
         
   ]);
   // Ajouter/Modifier les fonctions suivantes

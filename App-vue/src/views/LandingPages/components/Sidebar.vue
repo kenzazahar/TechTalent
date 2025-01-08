@@ -4,7 +4,7 @@
       <!-- En-tête du sidebar avec logo -->
       <div class="sidebar-header">
         <img src="/src/assets/img/logo-removebg-preview.png" alt="Logo" class="company-logo"/>
-        <h1 class="company-name">Digitis</h1>
+        <h1 class="company-name">TechTalent</h1>
       </div>
   
       <!-- Menu principal -->
@@ -17,14 +17,9 @@
             </router-link>
           </li>
           
+       
           <li class="nav-item">
-            <router-link to="/candidates" class="nav-link" active-class="active">
-              <i class="fas fa-users"></i>
-              <span>Candidats</span>
-            </router-link>
-          </li>
-          <li class="nav-item">
-            <router-link to="/candidats" class="nav-link" active-class="active">
+            <router-link to="/company/edit-profile" class="nav-link" active-class="active">
               <i class="fas fa-calendar"></i>
               <span>Modéfier le profile</span>
             </router-link>
@@ -35,11 +30,13 @@
       <!-- Profile section en bas -->
       <div class="sidebar-profile">
         <div class="profile-info">
-          <img src="/src/assets/img/logo-removebg-preview.png" alt="Profile" class="profile-image"/>
+          <router-link to="/company/profile" class="profile-info">
+          <img src="/src/assets/img/logo1.jpg" alt="Profile" class="profile-image"/>
           <div class="profile-details">
             <p class="profile-name">John Doe</p>
             <p class="profile-role">Recruteur</p>
           </div>
+        </router-link>
         </div>
         <button class="profile-edit-btn">
           <i class="fas fa-cog"></i>
@@ -56,7 +53,7 @@
   .sidebar {
     width: 260px;
     height: 100vh;
-    background-color: #34343d;
+    background-color: #1b1b1f;
     color: white;
     display: flex;
     flex-direction: column;
@@ -132,7 +129,12 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+    text-decoration: none;
+  color: inherit;
   }
+  .profile-info:hover {
+  opacity: 0.9;
+}
   
   .profile-image {
     width: 40px;

@@ -113,7 +113,7 @@ const handleClose = () => {
 <style scoped>
 .page-wrapper {
   min-height: 100vh;
-  background-color: #8b8383;
+  background-color: #202020;
   padding: 2rem;
   box-sizing: border-box;
 }

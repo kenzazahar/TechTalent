@@ -34,9 +34,30 @@ const router = createRouter({
       
     },
     {
+      path: '/company/profile',
+      name: 'CompanyProfile',
+      component: () => import('../views/LandingPages/CompanyProfile.vue')
+    },
+    {
+      path: '/company/edit-profile',
+      name: 'EditCompanyProfile',
+      component: () => import('../views/LandingPages/EditCompanyProfile.vue')
+    },
+    
+    {
       path: "/dashboard/offers/:id",
       name: "PublishOfferDetail",
       component: () => import("../views/LandingPages/PublishOfferDetail.vue"),
+    },
+    {
+      path: '/dashboard/offers/:id/candidates',
+      name: 'CandidatesList',
+      component: () => import('../views/LandingPages/ListCandidates.vue')
+    },
+    {
+      path: '/dashboard/offers/:id/candidates/cv',
+      name: 'CandidateCV',
+      component: () => import('../views/LandingPages/CandidateCV.vue')
     },
     {
       path: "/dashboard/offers/:id/edit",
@@ -73,6 +94,36 @@ const router = createRouter({
       name: "NewOffer",
       component: NewOffer,
     },
+    {
+      path: '/candidate/dashboard',
+      name: 'candidateDashboard',
+      component: () => import('../views/LandingPages/CandidateDashboard.vue')
+    },
+    {
+      path: '/candidate/dashboard/profile',
+      name: 'CandidateProfile',
+      component: () => import('../views/LandingPages/ProfileCandidat.vue')
+    },
+    {
+      path: '/candidate/dashboard/edit-profile',
+      name: 'EditCandidateProfile',
+      component: () => import('../views/LandingPages/EditProfileCandidate.vue')
+    },
+    {
+      path: '/candidate/dashboard/applications',
+      name: 'candidateApplications',
+      component: () => import('../views/LandingPages/CandidateApplications.vue')
+    },
+    {
+      path: '/dashboard/applications',
+      name: 'MyApplications',
+      component: () => import('../views/LandingPages/ListApplications.vue')
+    },
+    {
+      path: '/candidate/dashboard/offers/:id',
+      name: "OfferDetail",
+      component: () => import('../views/LandingPages/OfferDetail.vue'),
+    }
   ],
 });
 
