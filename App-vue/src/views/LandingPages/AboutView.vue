@@ -266,7 +266,7 @@ defineProps({
           <div class="row py-4">
             <div class="col-md-4">
               <div class="team-player">
-                <img src="@/assets/img/photo.jpg"
+                <img src="@/assets/img/photo_malak.png"
                   class="rounded-circle img-center img-fluid shadow shadow-lg--hover"
                   style="width: 140px;"
                   alt="Description de l'image">
@@ -274,10 +274,7 @@ defineProps({
                 <h5 class="title">Soulhi Malak</h5>
                 <p class=" text-dark custom-text-size-critere">Élève ingénieur</p>
                 <p class="description custom-text-size-team">
-                  You can write here details about one of your team members. You
-                  can give more details about what they do. Feel free to add
-                  some <a href="#">links</a> for people to be able to follow
-                  them outside the site.
+                 
                 </p>
               </div>
             </div>
@@ -291,10 +288,7 @@ defineProps({
                 <h5 class="title">Zahar Kenza</h5>
                 <p class="text-dark custom-text-size-critere">Élève ingénieur</p>
                 <p class="description custom-text-size-team">
-                  You can write here details about one of your team members. You
-                  can give more details about what they do. Feel free to add
-                  some <a href="#">links</a> for people to be able to follow
-                  them outside the site.
+                 
                 </p>
               </div>
             </div>
@@ -308,10 +302,7 @@ defineProps({
                 <h5 class="title">Souidak Firdaous</h5>
                 <p class="text-dark custom-text-size-critere">Élève ingénieur</p>
                 <p class="description custom-text-size-team">
-                  You can write here details about one of your team members. You
-                  can give more details about what they do. Feel free to add
-                  some <a href="#">links</a> for people to be able to follow
-                  them outside the site.
+                
                 </p>
               </div>
             </div>

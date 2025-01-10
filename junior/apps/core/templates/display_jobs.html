@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block header %}
+    Display jobs
+{% endblock %}
+{% block content%}
+    <h2>Job Listings</h2>
+    {% if jobs %}
+        <ul>
+        {% for job in jobs %}
+            <li>{{ job.title }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No jobs available.</p>
+    {% endif %}
+{% endblock%}
+

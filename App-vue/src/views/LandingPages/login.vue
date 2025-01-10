@@ -112,7 +112,7 @@ const handleLogin = async () => {
       }
       
       // Redirect to dashboard
-      router.push('/dashboard');
+      router.push('/candidate/dashboard');
     } else {
       errors.email = "Identifiants incorrects";
     }
