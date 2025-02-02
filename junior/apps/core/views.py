@@ -113,29 +113,56 @@ def api_register_student(request):
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
-# Company Registration View
-def register_company(request):
+@csrf_exempt
+def api_register_company(request):
     if request.method == 'POST':
-        form = CompanyForm(request.POST, request.FILES)
-        if form.is_valid():
-            username = form.cleaned_data['nom_societe']
-            if User.objects.filter(username=username).exists():
-                messages.error(request, "Ce nom d'utilisateur est déjà pris.")
+        print("Received company data:", request.POST)
+        print("Received files:", request.FILES)
+        try:
+            # Pour gérer à la fois JSON et FormData
+            if request.content_type == 'application/json':
+                data = json.loads(request.body)
             else:
-                user = User.objects.create_user(
-                    username=username,
-                    password=form.cleaned_data['password'],
-                    email=form.cleaned_data['email']
-                )
-                company = form.save(commit=False)
-                company.user = user
-                company.save()
-                messages.success(request, "Inscription réussie. Connectez-vous maintenant.")
-                return redirect('login_view')
-    else:
-        form = CompanyForm()
-
-    return render(request, 'register_company.html', {'form': form})
+                data = request.POST.dict()
+                
+            # Créer l'utilisateur
+            user = User.objects.create_user(
+                username=data['username'],
+                password=data['password'],
+                email=data['email']
+            )
+            
+            # Créer le profil entreprise
+            company = Company.objects.create(
+                user=user,
+                nom_societe=data['companyName'],
+                secteur_activite=data['sector'],
+                description=data['description'],
+                site_web=data['website'],
+                numero_telephone=data['phoneNumber'],
+                adresse=data['address'],
+                taille_entreprise=data['companySize'],
+                annee_creation=data['creationYear']
+            )
+            
+            # Gérer le logo
+            if request.FILES:
+                if 'companyLogo' in request.FILES:
+                    company.logo = request.FILES['companyLogo']
+                    company.save()
+            
+            return JsonResponse({
+                'message': 'Registration successful',
+                'username': user.username
+            })
+            
+        except Exception as e:
+            # Supprimer l'utilisateur en cas d'erreur
+            if 'user' in locals():
+                user.delete()
+            return JsonResponse({'error': str(e)}, status=400)
+            
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 # Logout View
 def logout_view(request):

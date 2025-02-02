@@ -85,7 +85,7 @@ const router = createRouter({
       component: inscription_Candidat,
     },
     {
-      path: '/pages/landing-pages/inscription_Entreprise',
+      path: '/inscription_entreprise',
       name: 'inscription_Entreprise',
       component: inscription_Entreprise,
     },

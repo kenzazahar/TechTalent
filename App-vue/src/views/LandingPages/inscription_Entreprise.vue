@@ -1,11 +1,13 @@
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from "vue";
-
-// Import des composants
+import { registerCompany } from '@/apiClient';
+import { useRouter } from 'vue-router';
 import DefaultNavbar from "./navbars/NavbarDefaults.vue";
 import DefaultFooter from "./footers/FooterDefault.vue";
 
-// États pour gérer les données du formulaire
+const router = useRouter();
+const isLoading = ref(false);
+
 const formData = reactive({
   companyName: "",
   companyLogo: null,
@@ -18,69 +20,110 @@ const formData = reactive({
   creationYear: "",
   username: "",
   email: "",
-  password: "",
+  password: ""
 });
 
 const errors = reactive({});
 
-// Fonction de soumission du formulaire
-const handleFormSubmit = () => {
-  // Réinitialisation des erreurs
-  Object.keys(errors).forEach((key) => {
+const validateForm = () => {
+  let isValid = true;
+  Object.keys(errors).forEach(key => {
     errors[key] = "";
   });
 
-  // Validation des champs
-  if (!formData.companyName) errors.companyName = "Le nom de la société est requis.";
-  if (!formData.sector) errors.sector = "Le secteur d'activité est requis.";
-  if (!formData.website) errors.website = "Le site web est requis.";
-  if (!formData.phoneNumber) errors.phoneNumber = "Le numéro de téléphone est requis.";
-  if (!formData.address) errors.address = "L'adresse est requise.";
-  if (!formData.companySize) errors.companySize = "La taille de l'entreprise est requise.";
-  if (!formData.creationYear) errors.creationYear = "L'année de création est requise.";
-  if (!formData.username) errors.username = "Le nom d'utilisateur est requis.";
-  if (!formData.email) {
-    errors.email = "L'email est requis.";
-  } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-    errors.email = "Format de l'email invalide.";
-  }
-  if (!formData.password) errors.password = "Le mot de passe est requis.";
+  // Validation des champs requis
+  const requiredFields = [
+    'companyName', 'sector', 'website', 'phoneNumber', 
+    'address', 'companySize', 'creationYear', 'username', 
+    'email', 'password'
+  ];
 
-  if (Object.values(errors).every((error) => !error)) {
-    alert("Formulaire soumis avec succès !");
-    // Logique pour soumettre les données
+  requiredFields.forEach(field => {
+    if (!formData[field]) {
+      errors[field] = 'Ce champ est requis';
+      isValid = false;
+    }
+  });
+
+  // Validation email
+  if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    errors.email = 'Adresse email invalide';
+    isValid = false;
+  }
+
+  // Validation mot de passe
+  if (formData.password && formData.password.length < 8) {
+    errors.password = 'Le mot de passe doit contenir au moins 8 caractères';
+    isValid = false;
+  }
+
+  return isValid;
+};
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (!validateForm()) {
+    alert("Veuillez corriger les erreurs dans le formulaire");
+    return;
+  }
+
+  isLoading.value = true;
+
+  try {
+    const formDataToSend = new FormData();
+    
+    // Ajout des champs au FormData
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value && key !== 'companyLogo') {
+        formDataToSend.append(key, value);
+      }
+    });
+
+    // Ajout du logo s'il existe
+    if (formData.companyLogo instanceof File) {
+      formDataToSend.append('companyLogo', formData.companyLogo);
+    }
+
+    const response = await registerCompany(formDataToSend);
+    
+    if (response && response.message === 'Registration successful') {
+      alert("Inscription réussie !");
+      router.push('/login');
+    }
+  } catch (error) {
+    console.error("Erreur lors de l'inscription:", error);
+    if (error.response) {
+      Object.entries(error.response.data).forEach(([field, message]) => {
+        errors[field] = Array.isArray(message) ? message[0] : message;
+      });
+    }
+    alert("Une erreur est survenue lors de l'inscription. Veuillez vérifier les champs et réessayer.");
+  } finally {
+    isLoading.value = false;
   }
 };
 
-// Gestion des fichiers téléchargés
 const handleFileUpload = (event, key) => {
   const file = event.target.files[0];
   if (file) {
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      errors[key] = 'Le fichier est trop volumineux (max 5MB)';
+      event.target.value = '';
+      return;
+    }
     formData[key] = file;
+    errors[key] = '';
   }
 };
 
-// Hooks pour gérer la classe du body
-const body = document.getElementsByTagName("body")[0];
 onMounted(() => {
-  body.classList.add("about-us");
-  body.classList.add("bg-light");
-
-  if (document.getElementById("typed")) {
-    new Typed("#typed", {
-      stringsElement: "#typed-strings",
-      typeSpeed: 90,
-      backSpeed: 90,
-      backDelay: 200,
-      startDelay: 500,
-      loop: true,
-    });
-  }
+  document.body.classList.add("about-us", "bg-light");
 });
 
 onUnmounted(() => {
-  body.classList.remove("about-us");
-  body.classList.remove("bg-light");
+  document.body.classList.remove("about-us", "bg-light");
 });
 </script>
 

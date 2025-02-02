@@ -31,7 +31,6 @@ apiClient.interceptors.request.use(
 
 export const registerStudent = async (formData) => {
   try {
-    // Log pour débugger
     console.log('Sending registration data:', formData);
     
     const response = await apiClient.post('/api/register/student/', formData, {
@@ -43,6 +42,26 @@ export const registerStudent = async (formData) => {
     return response.data;
   } catch (error) {
     console.error('Registration error:', error);
+    if (error.response) {
+      console.error('Error response:', error.response.data);
+    }
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const registerCompany = async (formData) => {
+  try {
+    console.log('Sending company registration data:', formData);
+    
+    const response = await apiClient.post('/api/register/company/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    console.log('Company registration response:', response);
+    return response.data;
+  } catch (error) {
+    console.error('Company registration error:', error);
     if (error.response) {
       console.error('Error response:', error.response.data);
     }

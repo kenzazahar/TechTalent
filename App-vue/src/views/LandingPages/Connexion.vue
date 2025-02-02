@@ -110,7 +110,7 @@ onUnmounted(() => {
                   <p class="card-text">
                     Créez un compte entreprise pour publier des offres et gérer vos candidatures.
                   </p>
-                  <RouterLink to="/pages/landing-pages/inscription_Entreprise"  class="btn btn-dark">
+                  <RouterLink to="/inscription_entreprise"  class="btn btn-dark">
                     S'inscrire en tant qu'Entreprise
                   </RouterLink>
                   

@@ -105,7 +105,7 @@ defineProps({
             <RouterLink to="/pages/landing-pages/inscription_Candidat" class="btn bg-white text-dark mx-2" style=" width: 150px; height: 31px; font-size: 9px;  align-items: center; justify-content: center;">
               Inscription Candidat
             </RouterLink>
-          <RouterLink to="/pages/landing-pages/inscription_Entreprise" class="btn bg-white text-dark mx-2" style=" width: 158px; height: 31px; font-size: 9px;  align-items: center; justify-content: center;">
+          <RouterLink to="/inscription_entreprise" class="btn bg-white text-dark mx-2" style=" width: 158px; height: 31px; font-size: 9px;  align-items: center; justify-content: center;">
             Inscription Entreprise
           </RouterLink>
           </div>

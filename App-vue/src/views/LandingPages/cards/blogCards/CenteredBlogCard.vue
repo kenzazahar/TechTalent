@@ -38,7 +38,7 @@ defineProps({
       <p :style="{ fontSize: '12px' }"  class="mb-0">
         {{ description }}
       </p>
-      <RouterLink to="/pages/landing-pages/inscription_Entreprise" type="button" class="btn btn-sm mb-0 mt-3" style=" width: 150px; height: 31px; font-size: 9px;  align-items: center; justify-content: center;" :class="action.color">
+      <RouterLink to="/inscription_entreprise" type="button" class="btn btn-sm mb-0 mt-3" style=" width: 150px; height: 31px; font-size: 9px;  align-items: center; justify-content: center;" :class="action.color">
         {{ action.label }}
       </RouterLink>
     </div>
