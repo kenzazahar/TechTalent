@@ -80,7 +80,7 @@ const router = createRouter({
       component: DocsTendancesEmploi,
     },
     {
-      path: '/pages/landing-pages/inscription_Candidat',
+      path: '/inscription-candidat',  // URL plus simple et plus claire
       name: 'inscription_Candidat',
       component: inscription_Candidat,
     },

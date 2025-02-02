@@ -66,6 +66,7 @@
 import { ref, reactive, onMounted, onUnmounted } from "vue";
 import { useRouter } from 'vue-router';
 import Typed from "typed.js";
+import apiClient from '../../apiClient';
 import DefaultNavbar from "./navbars/NavbarDefaults.vue";
 import DefaultFooter from "./footers/FooterDefault.vue";
 
@@ -99,28 +100,33 @@ const handleLogin = async () => {
   }
 
   try {
-    // Here you would normally make an API call to verify credentials
-    // For this example, we'll simulate a successful login
-    // Replace this with your actual authentication logic
-    const loginSuccessful = true; // This should be the result of your API call
+    // Make API call to Django backend
+    const response = await apiClient.post('api/login/', {  // Notez le /api/login/
+      username: email.value, // Changed from email to username to match backend
+      password: password.value,
+    });
 
-    if (loginSuccessful) {
-      // Store authentication state
+    // On success, store authentication details
+    if (response.data.message === 'Login successful') {
+      localStorage.setItem('token', response.data.token);
       localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('username', response.data.username);
       if (rememberMe.value) {
         localStorage.setItem('userEmail', email.value);
       }
-      
-      // Redirect to dashboard
+
+      // Redirect to the dashboard
       router.push('/candidate/dashboard');
-    } else {
-      errors.email = "Identifiants incorrects";
     }
   } catch (error) {
-    console.error('Login error:', error);
-    errors.email = "Une erreur est survenue lors de la connexion";
+    console.log('Erreur complète:', error);
+    console.log('Response data:', error.response?.data);
+    console.log('Status:', error.response?.status);
+    
+    errors.email = error.response?.data?.error || "Une erreur est survenue lors de la connexion.";
   }
 };
+
 
 // On mounted and unmounted hooks
 const body = document.getElementsByTagName("body")[0];

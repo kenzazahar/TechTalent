@@ -90,7 +90,7 @@ onUnmounted(() => {
                   <p class="card-text">
                     Créez votre profil pour postuler à des offres de recrutement.
                   </p>
-                  <RouterLink to="/pages/landing-pages/inscription_Candidat" class="btn btn-dark" >
+                  <RouterLink to="/inscription-candidat" class="btn btn-dark" >
                     S'inscrire en tant que Candidat
                   </RouterLink>
                 </div>

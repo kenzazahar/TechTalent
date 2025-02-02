@@ -18,13 +18,16 @@ from django.contrib import admin
 from django.urls import path, include
 from apps.core.views import *
 from apps.store.views import *
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('register/', register, name='register'),
-    path('register/student/', register_student, name='register_student'),
+    path('api/register/student/', api_register_student, name='api_register_student'),
     path('register/company/', register_company, name='register_company'),
     path('login/', login_view, name='login_view'),
+    path('api/login/', api_login_view, name='api_login'),  # API endpoint for login
     path('logout/', logout_view, name='logout_view'), 
     path('edit-profile/', edit_profile, name='edit_profile'),
     path('add-job-offer/', add_job_offer, name='add_job_offer'),
@@ -34,4 +37,6 @@ urlpatterns = [
     path('search-bar/', search_bar, name='search_bar'),
     path('jobs/<int:job_id>/apply/', apply_to_job, name='apply_to_job'),
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 print("URL patterns:", urlpatterns)

@@ -12,9 +12,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -25,25 +25,28 @@ SECRET_KEY = 'django-insecure-uzb&%$$l+9r@(#k2ubxxj#^%d+7c58q9f@q6zg0&ld95z!0h=+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
-
-# Application definition
+# Cross-Origin Resource Sharing (CORS) settings for API usage
+CORS_ORIGIN_ALLOW_ALL = True  # Set to True for development; restrict in production
+CORS_ALLOW_CREDENTIALS = True
 
 INSTALLED_APPS = [
     'apps.core',
+    'apps.store',
+    'corsheaders',  # CORS headers app for handling API requests
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'apps.store',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Add CORS middleware
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -56,7 +59,7 @@ ROOT_URLCONF = 'junior.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'apps/core/templates'],
+        'DIRS': [os.path.join(BASE_DIR, 'apps/core/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -68,15 +71,11 @@ TEMPLATES = [
         },
     },
 ]
-TEMPLATES[0]['DIRS'] = [os.path.join(BASE_DIR, 'apps/core/templates')]
-print("Template dirs:", TEMPLATES[0]['DIRS'])
 
 WSGI_APPLICATION = 'junior.wsgi.application'
 
-
 # Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
+# Use SQLite for development; switch to PostgreSQL or MySQL for production
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -84,10 +83,7 @@ DATABASES = {
     }
 }
 
-
 # Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -103,10 +99,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -115,17 +108,105 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # Additional static files directory
 
-STATIC_URL = 'static/'
+# Media files (Uploaded files)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Login/Logout URLs
 LOGIN_URL = '/login/'
+LOGOUT_REDIRECT_URL = '/login/'  # Redirect after logout
 
+# Security settings (for production)
+if not DEBUG:
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_HSTS_SECONDS = 3600  # Use HTTP Strict Transport Security
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_SSL_REDIRECT = True
 
+# CORS settings
+CORS_ALLOWED_ORIGINS = [
+  
+     "http://localhost:5173",  # Ajoutez cette ligne
+    "http://127.0.0.1:5173" ,  # Et celle-ci
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+     'access-control-allow-origin',
+    'content-disposition',  # Important pour les fichiers
+    'content-type',        # Important pour les types MIME
+    'content-length',      # Important pour la taille des fichiers
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173'
+]
+# Configurer la taille maximale des fichiers uploadés
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB en bytes
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB en bytes
+
+# Définir les types MIME acceptés
+CORS_ALLOW_HEADERS += ['content-type']
+CORS_EXPOSE_HEADERS = ['content-type']
+
+# Configurer les paramètres de téléchargement de fichiers
+FILE_UPLOAD_PERMISSIONS = 0o644
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
+
+# Configurations de sécurité pour les fichiers
+SECURE_CONTENT_TYPE_NOSNIFF = True
+FILE_UPLOAD_HANDLERS = [
+    'django.core.files.uploadhandler.MemoryFileUploadHandler',
+    'django.core.files.uploadhandler.TemporaryFileUploadHandler',
+]
+
+# Définir les types de fichiers autorisés (optionnel mais recommandé)
+ALLOWED_FILE_TYPES = {
+    'image': ['image/jpeg', 'image/png', 'image/gif'],
+    'document': ['application/pdf', 'application/msword', 
+                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+}
+
+# Configuration pour gérer les cookies
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = False  # Permet l'accès au cookie CSRF via JavaScript
+SESSION_COOKIE_HTTPONLY = True
+
+# Si vous utilisez whitenoise pour servir les fichiers statiques et média (optionnel)
+if not DEBUG:
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
