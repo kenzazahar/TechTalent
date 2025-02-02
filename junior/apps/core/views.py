@@ -17,35 +17,60 @@ def api_login_view(request):
             username = data.get('username')
             password = data.get('password')
             
+            # Authenticate user
             user = authenticate(username=username, password=password)
+            
             if user is not None:
+                if not user.is_active:
+                    return JsonResponse({
+                        'error': 'Compte utilisateur désactivé'
+                    }, status=403)
+                
+                # Check for user profile
+                user_type = None
+                profile = None
+                
+                try:
+                    # Try to get student profile
+                    profile = Student.objects.get(user=user)
+                    user_type = 'student'
+                except Student.DoesNotExist:
+                    try:
+                        # Try to get company profile
+                        profile = Company.objects.get(user=user)
+                        user_type = 'company'
+                    except Company.DoesNotExist:
+                        return JsonResponse({
+                            'error': 'Profil utilisateur non trouvé. Veuillez compléter votre inscription.'
+                        }, status=400)
+
+                # If we get here, we have a valid profile
                 login(request, user)
+                
                 return JsonResponse({
                     'message': 'Login successful',
-                    'username': username
+                    'username': username,
+                    'user_type': user_type
                 })
+                
             else:
-                return JsonResponse({'error': 'Invalid credentials'}, status=401)
+                return JsonResponse({
+                    'error': 'Identifiants invalides'
+                }, status=401)
+                
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'error': 'Format de données invalide'
+            }, status=400)
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-    return JsonResponse({'error': 'Method not allowed'}, status=405)
+            return JsonResponse({
+                'error': f'Une erreur est survenue: {str(e)}'
+            }, status=500)
+            
+    return JsonResponse({
+        'error': 'Méthode non autorisée'
+    }, status=405)
 # Login View (for HTML form)
-def login_view(request):
-    form = LoginForm(request.POST or None)
-    msg = None
-    if request.method == 'POST':
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return HttpResponse("Hey! You have logged in successfully.")
-            else:
-                msg = 'Identifiants invalides.'
-        else:
-            msg = 'Erreur lors de la validation du formulaire.'
-    return render(request, 'accounts/login.html', {'form': form, 'msg': msg})
 
 # Registration View
 def register(request):

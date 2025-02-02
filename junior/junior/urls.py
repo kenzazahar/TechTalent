@@ -26,7 +26,6 @@ urlpatterns = [
     path('register/', register, name='register'),
     path('api/register/student/', api_register_student, name='api_register_student'),
     path('api/register/company/', api_register_company, name='api_register_company'),
-    path('login/', login_view, name='login_view'),
     path('api/login/', api_login_view, name='api_login'),  # API endpoint for login
     path('logout/', logout_view, name='logout_view'), 
     path('edit-profile/', edit_profile, name='edit_profile'),
