@@ -31,6 +31,13 @@
                 <span>Modifier le profil</span>
               </router-link>
             </li>
+
+            <li class="nav-item">
+              <router-link to="/" class="nav-link" active-class="active">
+                <i class="fas fa-user-edit"></i>
+                <span>Logout</span>
+              </router-link>
+            </li>
           </ul>
         </nav>
         

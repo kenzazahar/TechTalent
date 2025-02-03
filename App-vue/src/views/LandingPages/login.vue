@@ -26,11 +26,11 @@
       <section class="py-2"></section>
       <form @submit.prevent="handleLogin">
         <div class="form-group">
-          <label>Adresse e-mail / Nom d'utilisateur</label>
+          <label>Nom d'utilisateur</label>
           <input 
             type="text" 
             v-model="username" 
-            placeholder="Entrez votre e-mail ou nom d'utilisateur"  
+            placeholder="Entrez votre nom d'utilisateur"  
             class="text-btn"
             :class="{ 'error-input': errors.username }"
           />
