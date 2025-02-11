@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block header %}
+    Edit Profile Page
+{% endblock %}
+{% block content%}
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {%for field in form%}
+            {{field.label}}
+            {{field}} </br>
+            {% endfor %}
+            <button type="submit">Save</button>
+    </form>
+{% endblock%}

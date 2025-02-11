@@ -1,0 +1,18 @@
+<!-- job_application.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Apply to {{ job.title }}</h2>
+<p><strong>Company:</strong> {{ job.company.nom_societe }}</p>
+<p><strong>Location:</strong> {{ job.location }}</p>
+<p><strong>Job Type:</strong> {{ job.get_job_type_display }}</p>
+<p><strong>Description:</strong> {{ job.description }}</p>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Submit Application</button>
+</form>
+
+<a href="{% url 'job_detail' job.id %}">Back to Job Details</a>
+{% endblock %}

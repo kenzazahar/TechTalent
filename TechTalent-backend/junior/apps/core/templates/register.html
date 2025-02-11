@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block header %}
+    Register
+{% endblock %}
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
+<style>
+    .option-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 20px;
+    }
+    .option {
+        width: 200px;
+        height: 150px;
+        margin: 0 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 2px solid #ccc;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.2s, background-color 0.2s;
+    }
+    .option:hover {
+        transform: scale(1.1);
+        background-color: #f0f0f0;
+    }
+</style>
+
+<div id="app">
+    <h1 style="text-align: center;">Choose an Option</h1>
+    <div class="option-container">
+        <!-- Redirect to the specified view when clicked -->
+        <div class="option" @click="redirectTo('{% url 'register_student' %}')">
+            <h2>Student</h2>
+        </div>
+        <div class="option" @click="redirectTo('{% url 'register_company' %}')">
+            <h2>Company</h2>
+        </div>
+    </div>
+</div>
+
+<script>
+    const { createApp } = Vue;
+
+    createApp({
+        methods: {
+            redirectTo(url) {
+                window.location.href = url;
+            },
+        },
+    }).mount('#app');
+</script>
+{% endblock %}

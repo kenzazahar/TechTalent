@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+    .filters {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .filters select {
+        padding: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }    
+</style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results</title>
+</head>
+<body>
+    <h1>Search Job Offers</h1>
+    <form method="GET" action="{% url 'search_bar' %}">
+        <!-- Search bar -->
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search for jobs..." />
+    
+        <!-- Filters -->
+        <div class="filters">
+            <!-- Category Filter -->
+            <select name="category">
+                <option value="">All Categories</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+                        {{ category.title }}
+                    </option>
+                {% endfor %}
+            </select>
+    
+            <!-- Skill Filter -->
+            <select name="skill">
+                <option value="">All Skills</option>
+                {% for skill in skills %}
+                    <option value="{{ skill.id }}" {% if selected_skill == skill.id|stringformat:"s" %}selected{% endif %}>
+                        {{ skill.name }}
+                    </option>
+                {% endfor %}
+            </select>
+    
+            <!-- Job Type Filter -->
+            <select name="job_type">
+                <option value="">All Job Types</option>
+                {% for job_type, job_type_label in job_types %}
+                    <option value="{{ job_type }}" {% if selected_job_type == job_type %}selected{% endif %}>
+                        {{ job_type_label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    
+        <button type="submit">Search</button>
+    </form>
+    
+    <!-- Search Results -->
+    {% if results %}
+        <h2>Search Results</h2>
+        <ul>
+            {% for job in results %}
+                <li>
+                    <a href="{% url 'job_detail' job.id %}">{{ job.title }}</a>
+                    <p>{{ job.skills.all|join:", " }} | {{ job.category.title }} | {{ job.company.nom_societe }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No job offers found matching your query.</p>
+    {% endif %}
+</body>    
