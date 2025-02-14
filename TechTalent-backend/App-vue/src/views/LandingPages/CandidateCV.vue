@@ -35,7 +35,7 @@
   });
   </script>
   
-  <style scoped>
+<style scoped>
   .cv-container {
     padding: 2rem;
     max-width: 1200px;
@@ -58,4 +58,4 @@
     padding: 2rem;
     color: #666;
   }
-  </style>
+</style>

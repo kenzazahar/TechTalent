@@ -226,7 +226,19 @@ const handleClose = () => {
   justify-content: center;
   gap: 1rem;
   margin-top: 2rem;
-  flex-wrap: wrap; /* Pour permettre le retour à la ligne */
+}
+
+/* Style commun pour tous les boutons */
+.btn-edit, .btn-delete, .btn-close {
+  width: 180px;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  width: 150px;
+  text-align: center;
+  color: white;
 }
 
 .actions button {
@@ -235,7 +247,8 @@ const handleClose = () => {
   border-radius: 5px;
   cursor: pointer;
   font-weight: 600;
-  min-width: 120px; /* Largeur minimale pour l'alignement */
+  flex: 1; /* Permet aux boutons de prendre la même largeur */
+  max-width: 180px; /* Ajuste selon la largeur souhaitée */
 }
 
 .actions button:hover {
@@ -245,22 +258,29 @@ const handleClose = () => {
 
 .btn-edit {
   background: #544f55;
-  color: white;
-  flex: 0 1 auto; /* Pour ne pas étirer */
+  display: inline-block;
+  width: 150px; /* Ajuste selon tes besoins */
+  height: 45px;
 }
 
 .btn-delete {
   background: #2e2a2f;
-  color: white;
-  flex: 0 1 auto; /* Pour ne pas étirer */
+  display: inline-block;
+  width: 150px; /* Ajuste selon tes besoins */
+  height: 45px;
 }
 
 .btn-close {
-  background: #25212c;
-  color: white;
-  flex-basis: 100%; /* Pour occuper toute la largeur */
-  max-width: 200px; /* Largeur maximale */
-  margin-top: 1rem; /* Espacement avec les boutons du dessus */
+  background: #2e2a2f;
+  display: inline-block;
+  width: 90px; /* Ajuste selon tes besoins */
+  height: 23px;
+}
+
+@media (max-width: 768px) {
+  .btn-edit, .btn-delete, .btn-close {
+    width: 100%;
+  }
 }
 
 .modal {

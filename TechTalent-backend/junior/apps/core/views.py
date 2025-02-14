@@ -390,59 +390,36 @@ def api_update_profile(request):
         return JsonResponse({'error': f'Erreur lors de la mise à jour : {str(e)}'}, status=400)
 
 
-@require_http_methods(["GET", "OPTIONS"])
+@require_http_methods(["POST", "OPTIONS"])
 @csrf_exempt
 @login_required
 def api_update_company_profile(request):
     try:
         data = request.POST.dict()
         files = request.FILES
+        
+        company = Company.objects.get(user=request.user)
+        
+        # Mise à jour des champs
+        company.nom_societe = data.get('companyName', company.nom_societe)
+        company.secteur_activite = data.get('sector', company.secteur_activite)
+        company.description = data.get('description', company.description)
+        company.site_web = data.get('website', company.site_web)
+        company.numero_telephone = data.get('phoneNumber', company.numero_telephone)
+        company.adresse = data.get('address', company.adresse)
+        company.taille_entreprise = data.get('companySize', company.taille_entreprise)
+        company.annee_creation = data.get('creationYear', company.annee_creation)
 
-        # Vérifier si l'utilisateur est un étudiant ou une entreprise
-        profile = None
-        if Student.objects.filter(user=request.user).exists():
-            profile = Student.objects.get(user=request.user)
-            # Mise à jour des champs pour l'étudiant
-            profile.prenom = data.get('firstName', profile.prenom)
-            profile.nom = data.get('lastName', profile.nom)
-            profile.numero_telephone = data.get('phoneNumber', profile.numero_telephone)
-            profile.etablissement = data.get('institution', profile.etablissement)
-            profile.filiere = data.get('fieldOfStudy', profile.filiere)
-            profile.niveau_etude = data.get('educationLevel', profile.niveau_etude)
-            profile.annee_graduation = data.get('graduationYear', profile.annee_graduation)
-            profile.type_recherche = data.get('researchType', profile.type_recherche)
-            profile.date_disponibilite = data.get('availabilityDate', profile.date_disponibilite)
+        if 'companyLogo' in files:
+            company.logo_societe = files['companyLogo']
 
-            # Gestion des fichiers
-            if 'cv' in files:
-                profile.cv = files['cv']
-            if 'portfolio' in files:
-                profile.portfolio = files['portfolio']
-            if 'photo_profil' in files:
-                profile.photo_profil = files['photo_profil']
-
-        elif Company.objects.filter(user=request.user).exists():
-            profile = Company.objects.get(user=request.user)
-            # Mise à jour des champs pour l'entreprise
-            profile.nom_societe = data.get('companyName', profile.nom_societe)
-            profile.secteur_activite = data.get('sector', profile.secteur_activite)
-            profile.description = data.get('description', profile.description)
-            profile.site_web = data.get('website', profile.site_web)
-            profile.numero_telephone = data.get('phoneNumber', profile.numero_telephone)
-            profile.adresse = data.get('address', profile.adresse)
-            profile.taille_entreprise = data.get('companySize', profile.taille_entreprise)
-            profile.annee_creation = data.get('creationYear', profile.annee_creation)
-
-            if 'logo' in files:
-                profile.logo = files['logo']
-
-        else:
-            return JsonResponse({'error': 'Utilisateur non reconnu'}, status=404)
-
-        profile.save()
+        company.save()
         return JsonResponse({'message': 'Profil mis à jour avec succès'})
 
-    except ObjectDoesNotExist:
-        return JsonResponse({'error': 'Profil introuvable'}, status=404)
+    except Company.DoesNotExist:
+        return JsonResponse({'error': 'Profil entreprise non trouvé'}, status=404)
     except Exception as e:
-        return JsonResponse({'error': f'Erreur lors de la mise à jour : {str(e)}'}, status=400)
+        return JsonResponse({'error': str(e)}, status=400)
+    
+
+    

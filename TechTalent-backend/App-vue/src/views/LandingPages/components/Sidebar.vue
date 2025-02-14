@@ -35,28 +35,44 @@
       </nav>
   
       <!-- Profile section en bas -->
-      <div class="sidebar-profile">
-        <div class="profile-info">
-          <router-link to="/company/edit-profile" class="profile-info">
-          <img src="/src/assets/img/logo1.jpg" alt="Profile" class="profile-image"/>
+      <div class="sidebar-profile" v-if="companyProfile">
+      <div class="profile-info">
+        <router-link to="/company/edit-profile" class="profile-info">
+          <img 
+            :src="companyProfile.companyLogo || '/src/assets/img/default-company.jpg'" 
+            alt="Profile" 
+            class="profile-image"
+          />
           <div class="profile-details">
-            <p class="profile-name">John Doe</p>
-            <p class="profile-role">Recruteur</p>
+            <p class="profile-name">{{ companyProfile.companyName }}</p>
+            <p class="profile-role">{{ companyProfile.sector }}</p>
           </div>
         </router-link>
-        </div>
-        <button class="profile-edit-btn">
-          <i class="fas fa-cog"></i>
-        </button>
       </div>
+      <button class="profile-edit-btn">
+        <i class="fas fa-cog"></i>
+      </button>
+    </div>
     </div>
   </template>
   
-  <script setup>
-  // Vous pouvez ajouter ici la logique nécessaire
-  </script>
+<script setup>
+  import { ref, onMounted } from 'vue';
+  import { getCompanyProfile } from '@/apiClient';
   
-  <style scoped>
+  const companyProfile = ref(null);
+  
+  onMounted(async () => {
+    try {
+      const response = await getCompanyProfile();
+      companyProfile.value = response;
+    } catch (error) {
+      console.error('Erreur lors de la récupération du profil:', error);
+    }
+  });
+</script>
+  
+<style scoped>
   .sidebar {
     width: 260px;
     height: 100vh;
@@ -175,4 +191,4 @@
     background-color: rgba(255, 255, 255, 0.1);
     color: white;
   }
-  </style>
+</style>

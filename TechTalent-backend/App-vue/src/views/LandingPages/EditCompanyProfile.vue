@@ -69,13 +69,13 @@
             </div>
 
             <div class="form-group">
-  <label>Logo de la société</label>
-  <div class="logo-preview" v-if="formData.companyLogo">
-    <img :src="formData.companyLogo" alt="Logo actuel" />
-  </div>
-  <input type="file" id="company-logo" class="custom-file-input" @change="(e) => handleFileUpload(e, 'companyLogo')" accept="image/*" />
-  <label for="company-logo">Choisir un fichier</label>
-</div>
+              <label>Logo de la société</label>
+              <div class="logo-preview" v-if="formData.companyLogo">
+                <img :src="formData.companyLogo" alt="Logo actuel" />
+              </div>
+              <input type="file" id="company-logo" class="custom-file-input" @change="(e) => handleFileUpload(e, 'companyLogo')" accept="image/*" />
+              <label for="company-logo">Choisir un fichier</label>
+            </div>
           </div>
         </div>
 
@@ -113,7 +113,7 @@ const isLoading = ref(true); // Commencer avec loading=true
 
 const formData = reactive({
   companyName: "",
-  companyLogo: null,
+  companyLogo: "",
   sector: "",
   description: "",
   website: "",
@@ -140,7 +140,7 @@ onMounted(async () => {
     formData.address = response.address || '';
     formData.companySize = response.companySize || '';
     formData.creationYear = response.creationYear || '';
-    formData.companyLogo = response.companyLogo || null;
+    formData.companyLogo = response.companyLogo || '';
     
   } catch (error) {
     console.error('Erreur lors du chargement des données:', error);
@@ -178,7 +178,7 @@ const confirmSave = () => {
 
 const saveChanges = async () => {
   try {
-    loading.value = true;
+    isLoading.value = true; // Utiliser isLoading au lieu de loading
     const form = new FormData();
     Object.keys(formData).forEach((key) => {
       if (formData[key]) {
@@ -186,12 +186,13 @@ const saveChanges = async () => {
       }
     });
     await updateProfilecompany(form);
+    showConfirmModal.value = false;
     router.push('/dashboard');
   } catch (error) {
     console.error('Erreur lors de la sauvegarde:', error);
     alert("Une erreur est survenue lors de la sauvegarde");
   } finally {
-    loading.value = false;
+    isLoading.value = false; // Utiliser isLoading au lieu de loading
   }
 };
 

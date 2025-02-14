@@ -1,7 +1,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { useJobOffersStore } from 'C:/Vue_Django/App-vue/src/stores/jobOffersStore.js';
+import { useJobOffersStore } from '@/stores/jobOffersStore.js';
 import DefaultFooter from "./footers/FooterDefault.vue";
 
 const router = useRouter();
