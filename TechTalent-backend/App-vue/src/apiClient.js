@@ -150,7 +150,9 @@ export const createJobOffer = async (formData, isPublish = true) => {
         form.append(key, formData[key]);
       }
     });
-    form.append('isPublish', isPublish); // Assurez-vous que ce paramètre est bien envoyé
+    
+    // Convertir explicitement en string 'true' ou 'false'
+    form.append('isPublish', String(isPublish));
 
     const response = await apiClient.post('/api/job-offers/create/', form, {
       headers: {

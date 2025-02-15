@@ -435,46 +435,54 @@ def api_create_job_offer(request):
         response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
         return response
 
-    try:
-        # Vérifier si l'utilisateur est une entreprise
-        if not hasattr(request.user.profile, 'company'):
-            return JsonResponse({'error': 'Seules les entreprises peuvent créer des offres'}, status=403)
+    if request.method == "POST":
+        try:
+            # Vérifier si l'utilisateur est une entreprise
+            if not hasattr(request.user.profile, 'company'):
+                return JsonResponse({'error': 'Seules les entreprises peuvent créer des offres'}, status=403)
 
-        data = request.POST.dict() if request.POST else json.loads(request.body)
+            data = request.POST.dict() if request.POST else json.loads(request.body)
+            
+            # Convertir explicitement isPublish en booléen
+            is_publish = data.get('isPublish')
+            if isinstance(is_publish, str):
+                is_publish = is_publish.lower() == 'true'
+            else:
+                is_publish = bool(is_publish)
+            
+            # Créer l'offre
+            job_offer = JobOffer(
+                company=request.user.profile.company,
+                title=data.get('title'),
+                short_description=data.get('shortDescription'),
+                details=data.get('details'),
+                full_description=data.get('fullDescription'),
+                required_skills=data.get('requiredSkills'),
+                contract_type=data.get('contractType'),
+                work_mode=data.get('workMode'),
+                location=data.get('location'),
+                offer_duration=data.get('offerDuration'),
+                salary=data.get('salary'),
+                recruiter_name=data.get('recruiterName'),
+                recruiter_email=data.get('recruiterEmail'),
+                recruiter_phone=data.get('recruiterPhone'),
+                status='published' if is_publish else 'draft'
+            )
+
+            # Gérer l'image de l'offre si présente
+            if 'offerImage' in request.FILES:
+                job_offer.offer_image = request.FILES['offerImage']
+
+            job_offer.save()
+            
+            return JsonResponse({
+                'message': 'Offre créée avec succès',
+                'id': job_offer.id
+            })
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
         
-        # Créer l'offre
-        job_offer = JobOffer(
-            company=request.user.profile.company,
-            title=data.get('title'),
-            short_description=data.get('shortDescription'),
-            details=data.get('details'),
-            full_description=data.get('fullDescription'),
-            required_skills=data.get('requiredSkills'),
-            contract_type=data.get('contractType'),
-            work_mode=data.get('workMode'),
-            location=data.get('location'),
-            offer_duration=data.get('offerDuration'),
-            salary=data.get('salary'),
-            recruiter_name=data.get('recruiterName'),
-            recruiter_email=data.get('recruiterEmail'),
-            recruiter_phone=data.get('recruiterPhone'),
-            status='published' if data.get('isPublish') else 'draft'  # Assurez-vous que le statut est correctement défini
-        )
-
-        # Gérer l'image de l'offre si présente
-        if 'offerImage' in request.FILES:
-            job_offer.offer_image = request.FILES['offerImage']
-
-        job_offer.save()
-        
-        return JsonResponse({
-            'message': 'Offre créée avec succès',
-            'id': job_offer.id
-        })
-
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
 # Vue pour récupérer les offres publiées
 @require_http_methods(["GET"])
 @csrf_exempt

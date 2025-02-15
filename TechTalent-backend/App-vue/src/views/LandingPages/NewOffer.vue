@@ -62,6 +62,7 @@ const handleFileUpload = (event) => {
   }
 };
 
+
 const saveAsDraft = async () => {
   if (!validateForm(false)) {
     return;
@@ -69,7 +70,7 @@ const saveAsDraft = async () => {
 
   try {
     isSubmitting.value = true;
-    await jobOffersStore.createOffer(formData, false);
+    await jobOffersStore.createOffer(formData, false); // false pour brouillon
     alert("Offre sauvegardée comme brouillon !");
     router.push("/dashboard");
   } catch (error) {
@@ -80,24 +81,17 @@ const saveAsDraft = async () => {
 };
 
 const publishOffer = async () => {
-  console.log("Tentative de publication...");
   if (!validateForm(true)) {
-    console.log("Validation échouée", errors);
     return;
   }
 
   try {
     isSubmitting.value = true;
-    console.log("FormData envoyé :", formData);
-
-    const response = await jobOffersStore.createOffer(formData, true); // Assurez-vous que isPublish est true
-    console.log("Réponse de l'API :", response);
-
+    await jobOffersStore.createOffer(formData, true); // true pour publier
     alert("Offre publiée avec succès !");
     router.push("/dashboard");
   } catch (error) {
-    console.error("Erreur lors de la publication:", error);
-    alert("Erreur lors de la publication: " + (error.message || "Réponse vide"));
+    alert("Erreur lors de la publication: " + error.message);
   } finally {
     isSubmitting.value = false;
   }
