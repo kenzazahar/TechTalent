@@ -127,18 +127,18 @@
         </div>
       </div>
     </div>
-  </template>
+</template>
   
-  <script setup>
+<script setup>
   import Sidebar from './components/SidebarCandidat.vue';
   import { useCandidateJobStore } from '@/stores/candidateJobStore';
   import { useRouter } from 'vue-router';
   
   const store = useCandidateJobStore();
   const router = useRouter();
-  </script>
+</script>
   
-  <style scoped>
+<style scoped>
   .layout {
     display: flex;
     width: 100%;
@@ -324,4 +324,4 @@
   .btn-explore:hover {
     background-color: #0c0c0c;
   }
-  </style>
+</style>

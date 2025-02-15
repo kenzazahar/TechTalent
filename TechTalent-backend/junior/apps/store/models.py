@@ -27,7 +27,7 @@ class JobOffer(models.Model):
         (INTERNSHIP, 'Internship'),
         (ENTRY_LEVEL, 'Entry-Level'),
     ]
-
+    company = models.ForeignKey('core.Company', related_name='job_offers_store', on_delete=models.CASCADE)
     category = models.ForeignKey(Category, related_name='job_offers', on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True)

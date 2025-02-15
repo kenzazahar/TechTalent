@@ -1,111 +1,145 @@
-<template>
-  <div class="layout">
-    <Sidebar />
-    <div class="main-content">
-  <div class="job-offers-dashboard bg-gray-100">
-    <!-- Header box avec recherche et bouton -->
-    <div class="header-box">
-      <div class="search-container">
-        <input 
-          type="text" 
-          v-model="searchQuery" 
-          placeholder="Rechercher une offre..." 
-          class="search-input"
-          @keyup.enter="handleSearch"
-        />
-        <i class="fas fa-search search-icon cursor-pointer" @click="handleSearch"></i>
-      </div>
-      <button @click="$router.push('/dashboard/new-offer')" class="new-offer-btn">
-        Nouvelle offre
-      </button>
-    </div>
-
-    <!-- Section des offres publiées -->
-    <section class="offers-section">
-      <h2 class="section-title">Offres publiées</h2>
-      <div class="offers-grid">
-        <div 
-          v-for="offer in filteredPublishedOffers" 
-          :key="offer.id" 
-          class="offer-card"
-          :style="{ backgroundImage: `url(${offer.image})` }"
-        >
-          <div class="card-content">
-            <h3 class="offer-title">{{ offer.title }}</h3>
-            <p class="offer-location">{{ offer.location }}</p>
-            <div class="offer-actions">
-              <button class="action-btn btn-explore" @click="$router.push(`/dashboard/offers/${offer.id}`)">
-                Explorer
-              </button>
-              <button class="action-btn btn-manage" @click="$router.push(`/dashboard/offers/${offer.id}/candidates`)">
-                Gestion candidatures
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section des brouillons -->
-    <section class="drafts-section">
-      <h2 class="section-title">Brouillons</h2>
-      <div class="offers-grid">
-        <div 
-          v-for="draft in filteredDraftOffers" 
-          :key="draft.id" 
-          class="offer-card draft"
-          :style="{ backgroundImage: `url(${draft.image})` }"
-        >
-          <div class="card-content">
-            <h3 class="offer-title">{{ draft.title }}</h3>
-            <p class="offer-location">{{ draft.location }}</p>
-            <button class="action-btn btn-edit" @click="$router.push(`/dashboard/drafts/${draft.id}/edit`)">
-              Continuer l'édition
-            </button>
-          </div>
-        </div>
-      </div>
-     </section>
-    </div>
-   </div>
-  </div>
-</template>
-
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useJobOffersStore } from '@/stores/jobOffersStore.js';
 import Sidebar from './components/Sidebar.vue';
 
 const searchQuery = ref('');
 const jobOffersStore = useJobOffersStore();
 
+onMounted(async () => {
+  try {
+    await Promise.all([ 
+      jobOffersStore.fetchPublishedOffers(),
+      jobOffersStore.fetchDraftOffers()
+    ]);
+  } catch (error) {
+    console.error('Erreur lors du chargement des offres:', error);
+    jobOffersStore.setError('Une erreur est survenue lors du chargement des offres. Veuillez réessayer.');
+  }
+});
 
-
-// Fonction de filtrage des offres
 const filterOffers = (offers) => {
   const query = searchQuery.value.toLowerCase().trim();
   if (!query) return offers;
-  return offers.filter(offer => 
-    offer.title.toLowerCase().includes(query) || 
+  return offers.filter(offer =>
+    offer.title.toLowerCase().includes(query) ||
     offer.location.toLowerCase().includes(query)
   );
 };
 
-// Computed properties pour les offres filtrées
-const filteredPublishedOffers = computed(() => 
+const filteredPublishedOffers = computed(() =>
   filterOffers(jobOffersStore.publishedOffers)
 );
-const filteredDraftOffers = computed(() => 
+
+const filteredDraftOffers = computed(() =>
   filterOffers(jobOffersStore.draftOffers)
 );
 
-// Fonction de recherche
 const handleSearch = () => {
-  // La recherche est automatique grâce aux computed properties
-  // Mais on pourrait ajouter ici d'autres actions comme le tracking
   console.log('Recherche effectuée:', searchQuery.value);
 };
 </script>
+
+<template>
+  <div class="layout">
+    <Sidebar />
+    <div class="main-content">
+      <div class="job-offers-dashboard bg-gray-100">
+        <div class="header-box">
+          <div class="search-container">
+            <input
+              type="text"
+              v-model="searchQuery"
+              placeholder="Rechercher une offre..."
+              class="search-input"
+              @keyup.enter="handleSearch"
+            />
+            <i class="fas fa-search search-icon cursor-pointer" @click="handleSearch"></i>
+          </div>
+          <button @click="$router.push('/dashboard/new-offer')" class="new-offer-btn">
+            Nouvelle offre
+          </button>
+        </div>
+
+        <!-- Loading state -->
+        <div v-if="jobOffersStore.loading" class="loading-state">
+          Chargement des offres...
+        </div>
+
+        <!-- Error state -->
+        <div v-else-if="jobOffersStore.error" class="error-state">
+          {{ jobOffersStore.error }}
+          <button @click="jobOffersStore.fetchPublishedOffers()">Réessayer</button>
+        </div>
+
+        <!-- Content when loaded -->
+        <template v-else>
+          <!-- Published offers section -->
+          <section class="offers-section">
+            <h2 class="section-title">Offres publiées</h2>
+            <div v-if="filteredPublishedOffers.length === 0" class="no-offers">
+              Aucune offre publiée
+            </div>
+            <div v-else class="offers-grid">
+              <div
+                v-for="offer in filteredPublishedOffers"
+                :key="offer.id"
+                class="offer-card"
+                :style="{ backgroundImage: `url(${offer.image || '/default-image.jpg'})` }"
+              >
+                <div class="card-content">
+                  <h3 class="offer-title">{{ offer.title }}</h3>
+                  <p class="offer-location">{{ offer.location }}</p>
+                  <div class="offer-actions">
+                    <button 
+                      class="action-btn btn-explore" 
+                      @click="$router.push(`/dashboard/offers/${offer.id}`)"
+                    >
+                      Explorer
+                    </button>
+                    <button 
+                      class="action-btn btn-manage" 
+                      @click="$router.push(`/dashboard/offers/${offer.id}/candidates`)"
+                    >
+                      Gestion candidatures
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Drafts section -->
+          <section class="drafts-section">
+            <h2 class="section-title">Brouillons</h2>
+            <div v-if="filteredDraftOffers.length === 0" class="no-offers">
+              Aucun brouillon
+            </div>
+            <div v-else class="offers-grid">
+              <div
+                v-for="draft in filteredDraftOffers"
+                :key="draft.id"
+                class="offer-card draft"
+                :style="{ backgroundImage: `url(${draft.image || '/default-image.jpg'})` }"
+              >
+                <div class="card-content">
+                  <h3 class="offer-title">{{ draft.title }}</h3>
+                  <p class="offer-location">{{ draft.location }}</p>
+                  <button 
+                    class="action-btn btn-edit" 
+                    @click="$router.push(`/dashboard/drafts/${draft.id}/edit`)"
+                  >
+                    Continuer l'édition
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </template>
+      </div>
+    </div>
+  </div>
+</template>
 
 <!-- Le style reste exactement le même que dans votre code -->
 <style scoped>

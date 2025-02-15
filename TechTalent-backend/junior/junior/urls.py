@@ -24,6 +24,10 @@ from apps.core.views import api_get_profile
 from apps.core.views import api_get_company_profile
 from apps.core.views import api_update_profile
 from apps.core.views import api_update_company_profile
+from apps.core.views import api_create_job_offer
+from apps.core.views import api_update_job_offer
+from apps.core.views import api_get_published_offers
+from apps.core.views import api_get_draft_offers
 
 
 urlpatterns = [
@@ -38,6 +42,10 @@ urlpatterns = [
     path('api/company/profile/', api_get_company_profile, name='api_get_company_profile'),
     path('api/company/profile/update/', api_update_company_profile, name='api_update_company_profile'),
     path('edit-profile/', edit_profile, name='edit_profile'),
+    path('api/job-offers/create/', api_create_job_offer, name='api_create_job_offer'),
+    path('api/job-offers/published/', api_get_published_offers, name='api_get_published_offers'),
+    path('api/job-offers/drafts/', api_get_draft_offers, name='api_get_draft_offers'),
+    path('api/job-offers/<int:offer_id>/update/', api_update_job_offer, name='api_update_job_offer'),
     path('add-job-offer/', add_job_offer, name='add_job_offer'),
     path('job-offers-list/', job_offer_list, name='job_offer_list'),
     path('All-Jobs/', List_AllJobs, name='List_AllJobs'),

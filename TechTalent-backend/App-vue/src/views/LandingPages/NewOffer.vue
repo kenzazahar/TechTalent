@@ -1,18 +1,13 @@
-
 <script setup>
-//NewOffer.vue
 import { ref, reactive, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
-import { useJobOffersStore } from '@/stores/jobOffersStore.js'; // Adjust path as needed
-
-// Import des composants
+import { useJobOffersStore } from '@/stores/jobOffersStore.js';
 import DefaultFooter from "./footers/FooterDefault.vue";
 
-// Gestion de la navigation
-const jobOffersStore = useJobOffersStore();
 const router = useRouter();
+const jobOffersStore = useJobOffersStore();
+const isSubmitting = ref(false);
 
-// États pour gérer les données du formulaire
 const formData = reactive({
   title: "",
   shortDescription: "",
@@ -32,20 +27,16 @@ const formData = reactive({
 
 const errors = reactive({});
 
-// Fonction de validation
 const validateForm = (isPublish) => {
-  // Réinitialisation des erreurs
   Object.keys(errors).forEach((key) => {
     errors[key] = "";
   });
 
-  // Validation du champ obligatoire
   if (!formData.title) {
     errors.title = "Le titre est requis.";
     return false;
   }
 
-  // Si l'action est "publier", ajouter des validations supplémentaires
   if (isPublish) {
     if (!formData.shortDescription) errors.shortDescription = "La description courte est requise.";
     if (!formData.details) errors.details = "Les détails sont requis.";
@@ -64,7 +55,6 @@ const validateForm = (isPublish) => {
   return Object.values(errors).every((error) => !error);
 };
 
-// Gestion des fichiers téléchargés
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
   if (file) {
@@ -72,37 +62,50 @@ const handleFileUpload = (event) => {
   }
 };
 
-// Fonction pour sauvegarder comme brouillon
-const saveAsDraft = () => {
+const saveAsDraft = async () => {
   if (!validateForm(false)) {
     return;
   }
 
-  jobOffersStore.addDraft(formData);
-  alert("Offre sauvegardée comme brouillon !");
-  router.push("/dashboard");
+  try {
+    isSubmitting.value = true;
+    await jobOffersStore.createOffer(formData, false);
+    alert("Offre sauvegardée comme brouillon !");
+    router.push("/dashboard");
+  } catch (error) {
+    alert("Erreur lors de la sauvegarde: " + error.message);
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 
-
-  
-
-// Fonction pour publier l'offre
-const publishOffer = () => {
+const publishOffer = async () => {
+  console.log("Tentative de publication...");
   if (!validateForm(true)) {
+    console.log("Validation échouée", errors);
     return;
   }
 
-   jobOffersStore.addPublishedOffer(formData);
-  alert("Offre publiée avec succès !");
-  router.push("/dashboard");
+  try {
+    isSubmitting.value = true;
+    console.log("FormData envoyé :", formData);
+
+    const response = await jobOffersStore.createOffer(formData, true); // Assurez-vous que isPublish est true
+    console.log("Réponse de l'API :", response);
+
+    alert("Offre publiée avec succès !");
+    router.push("/dashboard");
+  } catch (error) {
+    console.error("Erreur lors de la publication:", error);
+    alert("Erreur lors de la publication: " + (error.message || "Réponse vide"));
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 
-// Fonction pour annuler
-const cancelAction = () => {
-  router.push("/dashboard"); // Redirection vers le tableau de bord
-};
 
-// Hooks pour gérer la classe du body
+
+
 const body = document.getElementsByTagName("body")[0];
 onMounted(() => {
   body.classList.add("about-us");

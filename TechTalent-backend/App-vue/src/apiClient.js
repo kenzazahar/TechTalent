@@ -141,4 +141,71 @@ export const updateProfilecompany = async (formData) => {
   }
 };
 
+
+export const createJobOffer = async (formData, isPublish = true) => {
+  try {
+    const form = new FormData();
+    Object.keys(formData).forEach(key => {
+      if (formData[key] !== null) {
+        form.append(key, formData[key]);
+      }
+    });
+    form.append('isPublish', isPublish); // Assurez-vous que ce paramètre est bien envoyé
+
+    const response = await apiClient.post('/api/job-offers/create/', form, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating job offer:', error);
+    throw error.response ? error.response.data : error;
+  }
+};
+
+// Get published offers
+export const getPublishedOffers = async () => {
+  try {
+    const response = await apiClient.get('/api/job-offers/published/');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching published offers:', error);
+    throw error;
+  }
+};
+
+// Get draft offers
+export const getDraftOffers = async () => {
+  try {
+    const response = await apiClient.get('/api/job-offers/drafts/');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching draft offers:', error);
+    throw error;
+  }
+};
+
+// Update an offer
+export const updateJobOffer = async (id, formData) => {
+  try {
+    const form = new FormData();
+    Object.keys(formData).forEach(key => {
+      if (formData[key] !== null) {
+        form.append(key, formData[key]);
+      }
+    });
+
+    const response = await apiClient.patch(`/api/job-offers/${id}/`, form, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating job offer:', error);
+    throw error;
+  }
+};
+
 export default apiClient;

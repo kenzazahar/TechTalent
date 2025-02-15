@@ -9,6 +9,9 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ObjectDoesNotExist
+from .models import JobOffer
+from django.core.files.base import ContentFile
+import base64
 
 # API Login View for Vue.js Frontend
 @csrf_exempt
@@ -420,6 +423,149 @@ def api_update_company_profile(request):
         return JsonResponse({'error': 'Profil entreprise non trouvé'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
-    
 
+
+@require_http_methods(["POST", "OPTIONS"])
+@csrf_exempt
+@login_required
+def api_create_job_offer(request):
+    if request.method == "OPTIONS":
+        response = HttpResponse()
+        response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
+        return response
+
+    try:
+        # Vérifier si l'utilisateur est une entreprise
+        if not hasattr(request.user.profile, 'company'):
+            return JsonResponse({'error': 'Seules les entreprises peuvent créer des offres'}, status=403)
+
+        data = request.POST.dict() if request.POST else json.loads(request.body)
+        
+        # Créer l'offre
+        job_offer = JobOffer(
+            company=request.user.profile.company,
+            title=data.get('title'),
+            short_description=data.get('shortDescription'),
+            details=data.get('details'),
+            full_description=data.get('fullDescription'),
+            required_skills=data.get('requiredSkills'),
+            contract_type=data.get('contractType'),
+            work_mode=data.get('workMode'),
+            location=data.get('location'),
+            offer_duration=data.get('offerDuration'),
+            salary=data.get('salary'),
+            recruiter_name=data.get('recruiterName'),
+            recruiter_email=data.get('recruiterEmail'),
+            recruiter_phone=data.get('recruiterPhone'),
+            status='published' if data.get('isPublish') else 'draft'  # Assurez-vous que le statut est correctement défini
+        )
+
+        # Gérer l'image de l'offre si présente
+        if 'offerImage' in request.FILES:
+            job_offer.offer_image = request.FILES['offerImage']
+
+        job_offer.save()
+        
+        return JsonResponse({
+            'message': 'Offre créée avec succès',
+            'id': job_offer.id
+        })
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+# Vue pour récupérer les offres publiées
+@require_http_methods(["GET"])
+@csrf_exempt
+@login_required
+def api_get_published_offers(request):
+    try:
+        company = request.user.profile.company
+        offers = JobOffer.objects.filter(company=company, status='published')
+        
+        offers_data = [{
+            'id': offer.id,
+            'title': offer.title,
+            'location': offer.location,
+            'image': request.build_absolute_uri(offer.offer_image.url) if offer.offer_image else None,
+            'shortDescription': offer.short_description,
+            'contractType': offer.contract_type,
+            'workMode': offer.work_mode,
+            'created_at': offer.created_at
+        } for offer in offers]
+        
+        return JsonResponse({'offers': offers_data})
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+# Vue pour récupérer les brouillons
+@require_http_methods(["GET"])
+@csrf_exempt
+@login_required
+def api_get_draft_offers(request):
+    try:
+        company = request.user.profile.company
+        offers = JobOffer.objects.filter(company=company, status='draft')
+        
+        offers_data = [{
+            'id': offer.id,
+            'title': offer.title,
+            'location': offer.location,
+            'image': request.build_absolute_uri(offer.offer_image.url) if offer.offer_image else None,
+            'shortDescription': offer.short_description,
+            'contractType': offer.contract_type,
+            'workMode': offer.work_mode,
+            'created_at': offer.created_at
+        } for offer in offers]
+        
+        return JsonResponse({'offers': offers_data})
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+# Vue pour mettre à jour une offre
+@require_http_methods(["PUT", "POST", "OPTIONS"])
+@csrf_exempt
+@login_required
+def api_update_job_offer(request, offer_id):
+    if request.method == "OPTIONS":
+        response = HttpResponse()
+        response["Access-Control-Allow-Methods"] = "PUT, POST, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
+        return response
+
+    try:
+        offer = JobOffer.objects.get(id=offer_id, company=request.user.profile.company)
+        data = request.POST.dict() if request.POST else json.loads(request.body)
+
+        # Mettre à jour les champs
+        fields_to_update = [
+            'title', 'short_description', 'details', 'full_description',
+            'required_skills', 'contract_type', 'work_mode', 'location',
+            'offer_duration', 'salary', 'recruiter_name', 'recruiter_email',
+            'recruiter_phone'
+        ]
+        
+        for field in fields_to_update:
+            if field in data:
+                setattr(offer, field, data[field])
+
+        # Mettre à jour le statut si spécifié
+        if 'isPublish' in data:
+            offer.status = 'published' if data['isPublish'] else 'draft'
+
+        # Gérer l'image si présente
+        if 'offerImage' in request.FILES:
+            offer.offer_image = request.FILES['offerImage']
+
+        offer.save()
+        
+        return JsonResponse({'message': 'Offre mise à jour avec succès'})
+
+    except JobOffer.DoesNotExist:
+        return JsonResponse({'error': 'Offre non trouvée'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
     

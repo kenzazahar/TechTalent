@@ -60,3 +60,36 @@ def set_is_company(sender, instance, created, **kwargs):
     if created:
         instance.user.profile.is_company = True
         instance.user.profile.save()
+
+
+
+class JobOffer(models.Model):
+    STATUS_CHOICES = [
+        ('draft', 'Brouillon'),
+        ('published', 'Publié'),
+    ]
+    
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='job_offers_core')
+    title = models.CharField(max_length=255)
+    short_description = models.CharField(max_length=500)
+    details = models.TextField()
+    full_description = models.TextField()
+    required_skills = models.TextField()
+    contract_type = models.CharField(max_length=100)
+    work_mode = models.CharField(max_length=100)
+    location = models.CharField(max_length=255, blank=True, null=True)
+    offer_duration = models.CharField(max_length=100, blank=True, null=True)
+    salary = models.CharField(max_length=100, blank=True, null=True)
+    recruiter_name = models.CharField(max_length=255)
+    recruiter_email = models.EmailField()
+    recruiter_phone = models.CharField(max_length=20, blank=True, null=True)
+    offer_image = models.ImageField(upload_to='job_offers/', blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} - {self.company.nom_societe}"
