@@ -2,7 +2,6 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useJobOffersStore } from '@/stores/jobOffersStore.js';
-import DefaultFooter from "./footers/FooterDefault.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -27,8 +26,15 @@ const formData = reactive({
 
 const errors = reactive({});
 
-onMounted(() => {
+onMounted(async () => {
   const offerId = parseInt(route.params.id);
+  
+  // Charger les offres publiées si elles ne sont pas déjà chargées
+  if (jobOffersStore.publishedOffers.length === 0) {
+    await jobOffersStore.fetchPublishedOffers();
+  }
+
+  // Trouver l'offre correspondante
   const offer = jobOffersStore.publishedOffers.find(o => o.id === offerId);
   
   if (!offer) {
@@ -37,7 +43,24 @@ onMounted(() => {
   }
 
   // Remplir le formulaire avec les données de l'offre
-  Object.assign(formData, offer);
+  Object.assign(formData, {
+    title: offer.title,
+    shortDescription: offer.shortDescription,
+    details: offer.details,
+    fullDescription: offer.fullDescription,
+    requiredSkills: offer.requiredSkills,
+    contractType: offer.contractType,
+    workMode: offer.workMode,
+    location: offer.location,
+    offerDuration: offer.offerDuration,
+    salary: offer.salary,
+    recruiterName: offer.recruiterName,
+    recruiterEmail: offer.recruiterEmail,
+    recruiterPhone: offer.recruiterPhone,
+    offerImage: offer.offerImage,
+  });
+
+  console.log("Données du formulaire :", formData); // Debug
 });
 
 const validateForm = () => {
@@ -74,21 +97,27 @@ const handleFileUpload = (event) => {
   }
 };
 
-const handleSave = () => {
+const handleSave = async () => {
+  console.log("handleSave appelé"); // Debug
   if (!validateForm()) {
+    console.log("Validation du formulaire échouée"); // Debug
     return;
   }
 
-  jobOffersStore.updatePublishedOffer({
-    ...formData,
-    id: parseInt(route.params.id)
-  });
-  
-  router.push('/dashboard'); // Modification ici pour rediriger vers le dashboard
+  try {
+    console.log("Données envoyées :", formData); // Debug
+    await jobOffersStore.updatePublishedOffer({
+      ...formData,
+      id: parseInt(route.params.id)
+    });
+    router.push({ name: 'PublishOfferDetail', params: { id: route.params.id } });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de l\'offre:', error);
+  }
 };
 
 const handleCancel = () => {
-  router.push('/dashboard'); // Modification ici pour rediriger vers le dashboard
+  router.push('/dashboard');
 };
 </script>
 
@@ -202,8 +231,6 @@ const handleCancel = () => {
       </form>
     </div>
   </div>
-
-  <DefaultFooter />
 </template>
 
 <style scoped>

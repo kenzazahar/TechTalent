@@ -189,6 +189,7 @@ export const getDraftOffers = async () => {
 };
 
 // Update an offer
+// Update an offer
 export const updateJobOffer = async (id, formData) => {
   try {
     const form = new FormData();
@@ -198,7 +199,8 @@ export const updateJobOffer = async (id, formData) => {
       }
     });
 
-    const response = await apiClient.patch(`/api/job-offers/${id}/`, form, {
+    console.log("Données envoyées à l'API :", form); // Debug
+    const response = await apiClient.patch(`/api/job-offers/${id}/update/`, form, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -206,6 +208,36 @@ export const updateJobOffer = async (id, formData) => {
     return response.data;
   } catch (error) {
     console.error('Error updating job offer:', error);
+    throw error.response ? error.response.data : error;
+  }
+};
+
+// Fonction pour supprimer une offre
+export const deleteJobOffer = async (id) => {
+  try {
+    const response = await apiClient.delete(`/api/job-offers/${id}/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting job offer:', error);
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getAllPublishedOffers = async () => {
+  try {
+    const response = await apiClient.get('/api/job-offers/all-published/');
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      // Le serveur a répondu avec un statut d'erreur
+      console.error('Server error:', error.response.data);
+    } else if (error.request) {
+      // La requête a été faite mais pas de réponse reçue
+      console.error('No response received:', error.request);
+    } else {
+      // Une erreur s'est produite lors de la configuration de la requête
+      console.error('Error setting up request:', error.message);
+    }
     throw error;
   }
 };

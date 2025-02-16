@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
+import { getAllPublishedOffers } from '@/apiClient';
 
 export const useCandidateJobStore = defineStore('candidateJobs', () => {
   // État des filtres
@@ -12,127 +13,70 @@ export const useCandidateJobStore = defineStore('candidateJobs', () => {
     maxSalary: 150
   });
 
-  // Liste des offres (utilisant les mêmes données que le store entreprise)
-  const jobOffers = ref([
-    {
-        id: 14,
-        title: "Développeur Backend",
-        location: "Grenoble",
-        contractType: "Freelance",
-        workMode: "Télétravail",
-        salary: 52,
-        image: "/src/assets/img/back.jpg",
-        description: "Développement de microservices et APIs REST",
-        tags: ["Java", "Spring Boot", "PostgreSQL"]
-      },
-  
-    {
-      id: 2,
-      title: "Ingénieur DevOps",
-      location: "Lyon",
-      contractType: "CDI",
-      workMode: "Hybride",
-      salary: 50,
-      image: "/src/assets/img/DevOps-Cest-quoi-par-Qim-info.jpg",
-      description: "Venez renforcer notre équipe DevOps et améliorer nos processus de déploiement",
-      tags: ["Docker", "Kubernetes", "AWS"]
-    },
-    {
-      id: 3,
-      title: "Data Scientist",
-      location: "Marseille",
-      contractType: "Freelance",
-      workMode: "Télétravail",
-      salary: 65,
-      image: "/src/assets/img/ds.jpg",
-      description: "Mission passionnante dans l'analyse de données et le machine learning",
-      tags: ["Python", "Machine Learning", "SQL"]
-    },
-    
-    
-    {
-      id: 13,
-      title: "Responsable Sécurité Informatique",
-      location: "Montpellier",
-      contractType: "CDI",
-      workMode: "Sur site",
-      salary: 60,
-      image: "/src/assets/img/secur.jpg",
-      description: "Prenez en charge la sécurité de notre infrastructure IT",
-      tags: ["Cybersécurité", "CISSP", "Pentest"]
-    },
-    
-    {
-      id: 16,
-      title: "Scrum Master",
-      location: "Marseille",
-      contractType: "CDI",
-      workMode: "Hybride",
-      salary: 48,
-      image: "/src/assets/img/scrum.jpg",
-      description: "Accompagnez nos équipes dans leur transformation agile",
-      tags: ["Agile", "Scrum", "Kanban", "Jira"]
-    },
-    {
-        id: 1,
-        title: "Développeur Full Stack",
-        location: "Paris",
-        contractType: "CDI",
-        workMode: "Hybride",
-        salary: 45,
-        image: "/src/assets/img/full.jpg",
-        description: "Rejoignez notre équipe dynamique pour développer des applications web innovantes",
-        tags: ["Vue.js", "Node.js", "MongoDB"]
-      },
-      {
-        id: 12,
-        title: "Testeur QA",
-        location: "Strasbourg",
-        contractType: "Stage",
-        workMode: "Sur site",
-        salary: 25,
-        image: "/src/assets/img/teste.jpg",
-        description: "Stage en assurance qualité logicielle au sein d'une équipe agile",
-        tags: ["Selenium", "Cypress", "Jest"]
-      },
-      {
-        id: 10,
-        title: "Développeur Mobile",
-        location: "Lyon",
-        contractType: "Freelance",
-        workMode: "Hybride",
-        salary: 55,
-        image: "/src/assets/img/mobile.jpg",
-        description: "Développement d'applications mobiles innovantes pour nos clients",
-        tags: ["React Native", "iOS", "Android"]
-      }
-     
+  const jobOffers = ref([]);
+  const loading = ref(false);
+  const error = ref(null);
 
-]);
+  // Fonction pour charger les offres
+  const fetchPublishedOffers = async () => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await getAllPublishedOffers();
+      console.log('Structure complète des offres reçues:', JSON.stringify(response, null, 2));
+      jobOffers.value = response.offers;
+    } catch (err) {
+      error.value = err.message || 'Erreur lors du chargement des offres';
+      console.error('Erreur complète:', err);
+    } finally {
+      loading.value = false;
+    }
+  };
 
-  // Computed property pour les offres filtrées
+
   const filteredOffers = computed(() => {
+    console.log('Début du filtrage des offres');
+    console.log('Offres disponibles:', jobOffers.value);
+    console.log('Filtres actuels:', filters.value);
+  
     return jobOffers.value.filter(offer => {
+      console.log('Vérification de l\'offre:', offer);
+  
+      // Vérification de la recherche
       const matchSearch = !filters.value.search || 
-        offer.title.toLowerCase().includes(filters.value.search.toLowerCase()) ||
-        offer.description.toLowerCase().includes(filters.value.search.toLowerCase());
-        
+        offer.title?.toLowerCase().includes(filters.value.search.toLowerCase()) ||
+        offer.shortDescription?.toLowerCase().includes(filters.value.search.toLowerCase());
+      console.log('matchSearch:', matchSearch);
+  
+      // Vérification du type de contrat
       const matchContract = !filters.value.contractType || 
         offer.contractType === filters.value.contractType;
-        
+      console.log('matchContract:', matchContract);
+  
+      // Vérification de la localisation
       const matchLocation = !filters.value.location || 
-        offer.location === filters.value.location;
-        
+        offer.location?.toLowerCase().includes(filters.value.location.toLowerCase());
+      console.log('matchLocation:', matchLocation);
+  
+      // Vérification du mode de travail
       const matchWorkMode = !filters.value.workMode || 
         offer.workMode === filters.value.workMode;
-        
-      const matchSalary = offer.salary >= filters.value.minSalary && 
-        offer.salary <= filters.value.maxSalary;
-
-      return matchSearch && matchContract && matchLocation && 
+      console.log('matchWorkMode:', matchWorkMode);
+  
+      // Vérification du salaire
+      const matchSalary = (!offer.salary) || 
+        (offer.salary >= filters.value.minSalary && 
+         offer.salary <= filters.value.maxSalary);
+      console.log('matchSalary:', matchSalary);
+  
+      const matches = matchSearch && matchContract && matchLocation && 
         matchWorkMode && matchSalary;
+      console.log('Résultat final pour cette offre:', matches);
+  
+      return matches;
     });
   });
+
 
   // Getters pour les options de filtres
   const allLocations = computed(() => 
@@ -166,11 +110,15 @@ export const useCandidateJobStore = defineStore('candidateJobs', () => {
   return {
     filters,
     jobOffers,
+    loading,
+    error,
     filteredOffers,
     allLocations,
     allContractTypes,
     allWorkModes,
     updateFilters,
-    resetFilters
+    resetFilters,
+    fetchPublishedOffers
   };
+
 });

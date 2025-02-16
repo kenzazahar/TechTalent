@@ -483,7 +483,6 @@ def api_create_job_offer(request):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
         
-# Vue pour récupérer les offres publiées
 @require_http_methods(["GET"])
 @csrf_exempt
 @login_required
@@ -498,8 +497,16 @@ def api_get_published_offers(request):
             'location': offer.location,
             'image': request.build_absolute_uri(offer.offer_image.url) if offer.offer_image else None,
             'shortDescription': offer.short_description,
+            'details': offer.details,  # Ajouté
+            'fullDescription': offer.full_description,  # Ajouté
+            'requiredSkills': offer.required_skills,  # Ajouté
             'contractType': offer.contract_type,
             'workMode': offer.work_mode,
+            'offerDuration': offer.offer_duration,  # Ajouté
+            'salary': offer.salary,  # Ajouté
+            'recruiterName': offer.recruiter_name,  # Ajouté
+            'recruiterEmail': offer.recruiter_email,  # Ajouté
+            'recruiterPhone': offer.recruiter_phone,  # Ajouté
             'created_at': offer.created_at
         } for offer in offers]
         
@@ -507,7 +514,7 @@ def api_get_published_offers(request):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
-
+    
 # Vue pour récupérer les brouillons
 @require_http_methods(["GET"])
 @csrf_exempt
@@ -532,21 +539,35 @@ def api_get_draft_offers(request):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+ 
 
-# Vue pour mettre à jour une offre
-@require_http_methods(["PUT", "POST", "OPTIONS"])
+@require_http_methods(["DELETE", "OPTIONS"])
 @csrf_exempt
 @login_required
-def api_update_job_offer(request, offer_id):
+def api_delete_job_offer(request, offer_id):
     if request.method == "OPTIONS":
         response = HttpResponse()
-        response["Access-Control-Allow-Methods"] = "PUT, POST, OPTIONS"
+        response["Access-Control-Allow-Methods"] = "DELETE, OPTIONS"
         response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
         return response
 
     try:
         offer = JobOffer.objects.get(id=offer_id, company=request.user.profile.company)
-        data = request.POST.dict() if request.POST else json.loads(request.body)
+        offer.delete()
+        return JsonResponse({'message': 'Offre supprimée avec succès'})
+    except JobOffer.DoesNotExist:
+        return JsonResponse({'error': 'Offre non trouvée'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@require_http_methods(["PATCH"])
+@csrf_exempt
+@login_required
+def api_update_job_offer(request, offer_id):
+    try:
+        offer = JobOffer.objects.get(id=offer_id, company=request.user.profile.company)
+        data = json.loads(request.body)
 
         # Mettre à jour les champs
         fields_to_update = [
@@ -555,25 +576,67 @@ def api_update_job_offer(request, offer_id):
             'offer_duration', 'salary', 'recruiter_name', 'recruiter_email',
             'recruiter_phone'
         ]
-        
+
         for field in fields_to_update:
             if field in data:
                 setattr(offer, field, data[field])
 
-        # Mettre à jour le statut si spécifié
-        if 'isPublish' in data:
-            offer.status = 'published' if data['isPublish'] else 'draft'
-
         # Gérer l'image si présente
-        if 'offerImage' in request.FILES:
-            offer.offer_image = request.FILES['offerImage']
+        if 'offer_image' in request.FILES:
+            offer.offer_image = request.FILES['offer_image']
 
         offer.save()
-        
-        return JsonResponse({'message': 'Offre mise à jour avec succès'})
+
+        return JsonResponse({
+            'message': 'Offre mise à jour avec succès',
+            'id': offer.id,
+            'title': offer.title,
+            'short_description': offer.short_description,
+            'details': offer.details,
+            'full_description': offer.full_description,
+            'required_skills': offer.required_skills,
+            'contract_type': offer.contract_type,
+            'work_mode': offer.work_mode,
+            'location': offer.location,
+            'offer_duration': offer.offer_duration,
+            'salary': offer.salary,
+            'recruiter_name': offer.recruiter_name,
+            'recruiter_email': offer.recruiter_email,
+            'recruiter_phone': offer.recruiter_phone,
+            'offer_image': request.build_absolute_uri(offer.offer_image.url) if offer.offer_image else None,
+        })
 
     except JobOffer.DoesNotExist:
         return JsonResponse({'error': 'Offre non trouvée'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+    
+
+@require_http_methods(["GET"])
+@csrf_exempt
+def api_get_all_published_offers(request):
+    try:
+        offers = JobOffer.objects.filter(status='published')
+        print(f"Nombre d'offres trouvées : {offers.count()}")  # Ajoutez cette ligne
+        
+        offers_data = [{
+            'id': offer.id,
+            'title': offer.title,
+            'location': offer.location,
+            'image': request.build_absolute_uri(offer.offer_image.url) if offer.offer_image else None,
+            'shortDescription': offer.short_description,
+            'contractType': offer.contract_type,
+            'workMode': offer.work_mode,
+            'salary': offer.salary,
+            'description': offer.full_description,
+            'tags': offer.required_skills.split(',') if offer.required_skills else [],
+            'created_at': offer.created_at
+        } for offer in offers]
+        
+        return JsonResponse({'offers': offers_data})
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    
+
     

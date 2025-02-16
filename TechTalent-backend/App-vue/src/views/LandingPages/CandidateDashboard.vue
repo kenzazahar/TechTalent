@@ -3,6 +3,17 @@
       <Sidebar />
       <div class="main-content">
         <div class="job-offers-dashboard">
+          <!-- Loading state -->
+          <div v-if="store.loading" class="loading-state">
+            Chargement des offres...
+          </div>
+
+          <!-- Error state -->
+          <div v-else-if="store.error" class="error-state">
+            {{ store.error }}
+            <button @click="store.fetchPublishedOffers">Réessayer</button>
+          </div>
+
           <!-- Section recherche avancée -->
           <div class="header-box">
             <h2 class="section-title">Recherche avancée</h2>
@@ -130,14 +141,20 @@
 </template>
   
 <script setup>
-  import Sidebar from './components/SidebarCandidat.vue';
-  import { useCandidateJobStore } from '@/stores/candidateJobStore';
-  import { useRouter } from 'vue-router';
-  
-  const store = useCandidateJobStore();
-  const router = useRouter();
+import { onMounted } from 'vue';
+import Sidebar from './components/SidebarCandidat.vue';
+import { useCandidateJobStore } from '@/stores/candidateJobStore';
+
+const store = useCandidateJobStore();
+
+onMounted(async () => {
+  console.log('Composant monté, chargement des offres...'); // Ajoutez cette ligne
+  await store.fetchPublishedOffers();
+  console.log('Offres chargées:', store.jobOffers); // Ajoutez cette ligne
+});
 </script>
-  
+
+
 <style scoped>
   .layout {
     display: flex;

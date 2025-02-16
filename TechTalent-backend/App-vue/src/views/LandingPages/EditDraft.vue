@@ -9,7 +9,11 @@ const route = useRoute();
 const jobOffersStore = useJobOffersStore();
 
 const showConfirmDialog = ref(false);
+const isLoading = ref(false);
+const successMessage = ref("");
+const errorMessage = ref("");
 
+// Données du formulaire
 const formData = reactive({
   title: "",
   shortDescription: "",
@@ -29,32 +33,55 @@ const formData = reactive({
 
 const errors = reactive({});
 
-onMounted(() => {
+// Charger les données du brouillon au montage du composant
+onMounted(async () => {
   const offerId = parseInt(route.params.id);
+  console.log("ID du brouillon :", offerId); // Debug
+
+  // Charger les brouillons si non déjà chargés
+  if (jobOffersStore.draftOffers.length === 0) {
+    await jobOffersStore.fetchDraftOffers();
+  }
+
   const draft = jobOffersStore.draftOffers.find(d => d.id === offerId);
-  
+  console.log("Brouillon trouvé :", draft); // Debug
+
   if (!draft) {
     router.push('/dashboard');
     return;
   }
 
   // Remplir le formulaire avec les données du brouillon
-  Object.assign(formData, draft);
+  Object.assign(formData, {
+    title: draft.title,
+    shortDescription: draft.short_description,
+    details: draft.details,
+    fullDescription: draft.full_description,
+    requiredSkills: draft.required_skills,
+    contractType: draft.contract_type,
+    workMode: draft.work_mode,
+    location: draft.location,
+    offerDuration: draft.offer_duration,
+    salary: draft.salary,
+    recruiterName: draft.recruiter_name,
+    recruiterEmail: draft.recruiter_email,
+    recruiterPhone: draft.recruiter_phone,
+    offerImage: draft.offer_image,
+  });
+  console.log("Données du formulaire après assignation :", formData); // Debug
 });
 
+// Valider le formulaire
 const validateForm = (isPublish = false) => {
-  // Réinitialisation des erreurs
   Object.keys(errors).forEach((key) => {
     errors[key] = "";
   });
 
-  // Validation basique pour la sauvegarde comme brouillon
   if (!formData.title) {
     errors.title = "Le titre est requis.";
     return false;
   }
 
-  // Validations supplémentaires pour la publication
   if (isPublish) {
     if (!formData.shortDescription) errors.shortDescription = "La description courte est requise.";
     if (!formData.details) errors.details = "Les détails sont requis.";
@@ -73,6 +100,7 @@ const validateForm = (isPublish = false) => {
   return Object.values(errors).every((error) => !error);
 };
 
+// Gérer l'upload de l'image
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
   if (file) {
@@ -80,45 +108,106 @@ const handleFileUpload = (event) => {
   }
 };
 
-const saveDraft = () => {
+// Sauvegarder en brouillon
+const saveDraft = async () => {
   if (!validateForm()) {
     return;
   }
 
-  jobOffersStore.updateDraft({
-    ...formData,
-    id: parseInt(route.params.id)
-  });
-  
-  router.push('/dashboard');
+  isLoading.value = true;
+  errorMessage.value = "";
+  successMessage.value = "";
+
+  try {
+    const dataToSend = {
+      title: formData.title,
+      short_description: formData.shortDescription, // Mapping des champs
+      details: formData.details,
+      full_description: formData.fullDescription,
+      required_skills: formData.requiredSkills,
+      contract_type: formData.contractType,
+      work_mode: formData.workMode,
+      location: formData.location,
+      offer_duration: formData.offerDuration,
+      salary: formData.salary,
+      recruiter_name: formData.recruiterName,
+      recruiter_email: formData.recruiterEmail,
+      recruiter_phone: formData.recruiterPhone,
+      offer_image: formData.offerImage,
+    };
+
+    console.log("Données envoyées à l'API :", dataToSend); // Debug
+    await jobOffersStore.updateDraft({
+      ...dataToSend,
+      id: parseInt(route.params.id)
+    });
+    successMessage.value = "Brouillon sauvegardé avec succès !";
+    setTimeout(() => {
+      router.push('/dashboard');
+    }, 1500);
+  } catch (error) {
+    errorMessage.value = "Erreur lors de la sauvegarde du brouillon : " + error.message;
+  } finally {
+    isLoading.value = false;
+  }
 };
 
-const publishOffer = () => {
+// Publier l'offre
+const publishOffer = async () => {
   if (!validateForm(true)) {
     return;
   }
 
-  const offerId = parseInt(route.params.id);
-  
-  jobOffersStore.publishDraft(offerId);
-  router.push('/dashboard');
+  isLoading.value = true;
+  errorMessage.value = "";
+  successMessage.value = "";
+
+  try {
+    const offerId = parseInt(route.params.id);
+    await jobOffersStore.publishDraft(offerId);
+    successMessage.value = "Offre publiée avec succès !";
+    setTimeout(() => {
+      router.push('/dashboard');
+    }, 1500);
+  } catch (error) {
+    errorMessage.value = "Erreur lors de la publication de l'offre : " + error.message;
+  } finally {
+    isLoading.value = false;
+  }
 };
 
+// Confirmer la suppression
 const confirmDelete = () => {
   showConfirmDialog.value = true;
 };
 
-const handleDelete = () => {
-  const offerId = parseInt(route.params.id);
-  jobOffersStore.deleteDraft(offerId);
-  showConfirmDialog.value = false;
-  router.push('/dashboard');
+// Supprimer le brouillon
+const handleDelete = async () => {
+  isLoading.value = true;
+  errorMessage.value = "";
+  successMessage.value = "";
+
+  try {
+    const offerId = parseInt(route.params.id);
+    await jobOffersStore.deleteDraft(offerId);
+    successMessage.value = "Brouillon supprimé avec succès !";
+    setTimeout(() => {
+      router.push('/dashboard');
+    }, 1500);
+  } catch (error) {
+    errorMessage.value = "Erreur lors de la suppression du brouillon : " + error.message;
+  } finally {
+    isLoading.value = false;
+    showConfirmDialog.value = false;
+  }
 };
 
+// Annuler la suppression
 const cancelDelete = () => {
   showConfirmDialog.value = false;
 };
 
+// Annuler et retourner au tableau de bord
 const handleCancel = () => {
   router.push('/dashboard');
 };
@@ -128,6 +217,15 @@ const handleCancel = () => {
   <div class="login-page">
     <div class="login-container">
       <h3>Modifier le brouillon</h3>
+
+      <!-- Messages de feedback -->
+      <div v-if="successMessage" class="success-message">
+        {{ successMessage }}
+      </div>
+      <div v-if="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
       <form @submit.prevent="publishOffer">
         <div class="form-sections">
           <!-- Partie gauche -->
@@ -143,6 +241,7 @@ const handleCancel = () => {
               <input type="text" class="text-btn" v-model="formData.shortDescription" placeholder="Entrez une description courte" />
               <span v-if="errors.shortDescription" class="error">{{ errors.shortDescription }}</span>
             </div>
+
             <div class="form-group">
               <label>Détails *</label>
               <input type="text" class="text-btn" v-model="formData.details" placeholder="Entrez les détails" />
@@ -182,8 +281,6 @@ const handleCancel = () => {
               </select>
               <span v-if="errors.workMode" class="error">{{ errors.workMode }}</span>
             </div>
-
-            <!-- [Autres champs de gauche identiques à EditOffer.vue] -->
           </div>
 
           <!-- Partie droite -->
@@ -224,18 +321,23 @@ const handleCancel = () => {
               <label>Image de l'offre</label>
               <input type="file" class="custom-file-input" @change="handleFileUpload" accept="image/*" />
             </div>
-            <!-- [Champs de droite identiques à EditOffer.vue] -->
           </div>
         </div>
 
         <!-- Boutons d'action -->
         <div class="form-actions">
-          
-          <button type="button" class="draft-button" @click="saveDraft">Sauvegarder comme brouillon</button>
-          <button type="submit" class="submit-button">Publier</button>
-          <button type="button" class="delete-button" @click="confirmDelete">Supprimer</button>
-          <button type="button" class="cancel-button" @click="handleCancel">Annuler</button>
-          
+          <button type="button" class="draft-button" @click="saveDraft" :disabled="isLoading">
+            {{ isLoading ? "Sauvegarde en cours..." : "Sauvegarder comme brouillon" }}
+          </button>
+          <button type="submit" class="submit-button" :disabled="isLoading">
+            {{ isLoading ? "Publication en cours..." : "Publier" }}
+          </button>
+          <button type="button" class="delete-button" @click="confirmDelete" :disabled="isLoading">
+            Supprimer
+          </button>
+          <button type="button" class="cancel-button" @click="handleCancel" :disabled="isLoading">
+            Annuler
+          </button>
         </div>
       </form>
     </div>

@@ -2,7 +2,6 @@
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useJobOffersStore } from '@/stores/jobOffersStore.js';
-import DefaultFooter from "./footers/FooterDefault.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -31,10 +30,14 @@ const handleDelete = () => {
   showDeleteModal.value = true;
 };
 
-const confirmDelete = () => {
-  jobOffersStore.deletePublishedOffer(offer.value.id);
-  showDeleteModal.value = false;
-  router.push('/dashboard');
+const confirmDelete = async () => {
+  try {
+    await jobOffersStore.deletePublishedOffer(offer.value.id);
+    showDeleteModal.value = false;
+    router.push('/dashboard');
+  } catch (error) {
+    console.error('Erreur lors de la suppression:', error);
+  }
 };
 
 const handleClose = () => {
