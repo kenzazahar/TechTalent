@@ -30,6 +30,7 @@ from apps.core.views import api_get_published_offers
 from apps.core.views import api_get_draft_offers
 from apps.core.views import api_delete_job_offer
 from apps.core.views import api_get_all_published_offers
+from apps.core.views import api_get_student_applications
 
 
 urlpatterns = [
@@ -50,6 +51,11 @@ urlpatterns = [
     path('api/job-offers/<int:offer_id>/update/', api_update_job_offer, name='api_update_job_offer'),
     path('api/job-offers/<int:offer_id>/', api_delete_job_offer, name='api_delete_job_offe'),
     path('api/job-offers/all-published/', api_get_all_published_offers, name='api_get_all_published_offers'),
+    path('applications/create/', api_create_application, name='api_create_application'),
+    path('applications/company/<int:offer_id>/', api_get_company_applications, name='api_get_company_applications'),
+    path('applications/update-status/<int:application_id>/', api_update_application_status, name='api_update_application_status'),
+    path('applications/student/', api_get_student_applications, name='api_get_student_applications'),
+    path('applications/<int:application_id>/', api_delete_application, name='api_delete_application'),
     path('add-job-offer/', add_job_offer, name='add_job_offer'),
     path('job-offers-list/', job_offer_list, name='job_offer_list'),
     path('All-Jobs/', List_AllJobs, name='List_AllJobs'),

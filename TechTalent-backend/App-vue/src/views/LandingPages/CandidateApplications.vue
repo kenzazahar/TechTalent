@@ -65,7 +65,7 @@
               <div class="company-info">
                 <img :src="application.companyLogo" :alt="application.company" class="company-logo">
                 <div>
-                  <div class="company-name">{{ application.company }}</div>
+                  <div class="company-name">{{ application.companyName }}</div>
                   <div class="location">{{ application.location }}</div>
                 </div>
               </div>
@@ -78,27 +78,26 @@
                   <span>Salaire: {{ application.salary }}</span>
                 </div>
                 <div class="detail-row">
-                  <span>Type: {{ application.contractType }}</span>
-                </div>
-              </div>
-
-              <div class="timeline">
-                <div class="timeline-item" v-for="(event, eventIndex) in application.timeline" 
-                     :key="eventIndex"
-                >
-                  <div class="timeline-dot"></div>
-                  <div class="timeline-content">
-                    <div class="event-date">{{ formatDate(event.date) }}</div>
-                    <div class="event-description">{{ event.description }}</div>
-                  </div>
+                  <span>Type de contrat: {{ application.contractType }}</span>
                 </div>
               </div>
             </div>
 
             <div class="application-actions">
+              <select v-if="canUpdateStatus(application)" 
+                      v-model="application.status" 
+                      @change="updateStatus(application.id, application.status)"
+                      class="action-btn"
+              >
+                <option value="En attente">En attente</option>
+                <option value="En cours">En cours</option>
+                <option value="Acceptée">Acceptée</option>
+                <option value="Refusée">Refusée</option>
+              </select>
+              
               <button v-if="canWithdraw(application)" 
                       class="action-btn withdraw"
-                      @click="confirmWithdraw(index)"
+                      @click="confirmWithdraw(application.id)"
               >
                 Retirer ma candidature
               </button>
@@ -116,65 +115,31 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Sidebar from './components/SidebarCandidat.vue'
+import { getStudentApplications, updateApplicationStatus, deleteApplication } from '@/apiClient'
 
 const searchText = ref('')
 const statusFilter = ref('all')
+const applications = ref([])
 
-const applications = ref([
-{
-      id: 1,
-      jobTitle: 'Développeur Frontend Vue.js',
-      company: 'TechCorp',
-      companyLogo: '/src/assets/img/logo1.jpg',
-      location: 'Casablanca',
-      status: 'En attente',
-      applicationDate: '2024-01-05',
-      salary: '15000 - 20000 DH',
-      contractType: 'CDI',
-      timeline: [
-        {
-          date: '2024-01-05',
-          description: 'Candidature soumise'
-        },
-        {
-          date: '2024-01-07',
-          description: 'CV consulté par le recruteur'
-        }
-      ]
-    },
-    {
-      id: 2,
-      jobTitle: 'UX/UI Designer',
-      company: 'DesignStudio',
-      companyLogo: '/src/assets/img/logo2.jpg',
-      location: 'Rabat',
-      status: 'En cours',
-      applicationDate: '2024-01-03',
-      salary: '12000 - 18000 DH',
-      contractType: 'CDI',
-      timeline: [
-        {
-          date: '2024-01-03',
-          description: 'Candidature soumise'
-        },
-        {
-          date: '2024-01-04',
-          description: 'Entretien technique planifié'
-        }
-      ]
-    }
-])
+onMounted(async () => {
+  try {
+    const response = await getStudentApplications();
+    console.log('Réponse de l\'API:', response);  // Vérifiez ici la structure des données
+    applications.value = response.applications;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des candidatures:', error);
+  }
+})
 
 const filteredApplications = computed(() => {
-  return applications.value.filter(app => {
-    const matchesSearch = app.jobTitle.toLowerCase().includes(searchText.value.toLowerCase()) ||
-                         app.company.toLowerCase().includes(searchText.value.toLowerCase())
-    const matchesStatus = statusFilter.value === 'all' || app.status === statusFilter.value
-    return matchesSearch && matchesStatus
-  })
-})
+  const matchesSearch = app => app.jobTitle.toLowerCase().includes(searchText.value.toLowerCase()) ||
+                               app.companyName.toLowerCase().includes(searchText.value.toLowerCase());
+  return applications.value.filter(app => matchesSearch(app));
+});
+
+
 
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -184,16 +149,38 @@ const formatDate = (dateString) => {
   })
 }
 
+const canUpdateStatus = (application) => {
+  return ['En attente', 'En cours'].includes(application.status)
+}
+
 const canWithdraw = (application) => {
   return ['En attente', 'En cours'].includes(application.status)
 }
 
-const confirmWithdraw = (index) => {
+const updateStatus = async (applicationId, newStatus) => {
+  try {
+    await updateApplicationStatus(applicationId, newStatus)
+    const application = applications.value.find(app => app.id === applicationId)
+    if (application) {
+      application.status = newStatus
+    }
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du statut:', error)
+  }
+}
+
+const confirmWithdraw = async (applicationId) => {
   if (confirm('Êtes-vous sûr de vouloir retirer votre candidature ?')) {
-    applications.value.splice(index, 1)
+    try {
+      await deleteApplication(applicationId)
+      applications.value = applications.value.filter(app => app.id !== applicationId)
+    } catch (error) {
+      console.error('Erreur lors du retrait de la candidature:', error)
+    }
   }
 }
 </script>
+
 
 <style scoped>
 .layout {

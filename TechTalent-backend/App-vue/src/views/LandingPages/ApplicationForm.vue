@@ -1,146 +1,125 @@
 <template>
-    <div class="application-form">
-      <h1 class="form-title">Postuler - {{ offer?.title }}</h1>
-      
-      <form @submit.prevent="handleSubmit" class="form-content">
-        <div class="form-group">
-          <label for="firstName">Prénom <span class="required">*</span></label>
-          <input
-            id="firstName"
-            v-model="formData.firstName"
-            type="text"
-            required
-            class="form-input"
-          />
-        </div>
-  
-        <div class="form-group">
-          <label for="lastName">Nom <span class="required">*</span></label>
-          <input
-            id="lastName"
-            v-model="formData.lastName"
-            type="text"
-            required
-            class="form-input"
-          />
-        </div>
-  
-        <div class="form-group">
-          <label for="email">Email <span class="required">*</span></label>
-          <input
-            id="email"
-            v-model="formData.email"
-            type="email"
-            required
-            class="form-input"
-          />
-        </div>
-  
-        <div class="form-group">
-          <label for="phone">Téléphone</label>
-          <input
-            id="phone"
-            v-model="formData.phone"
-            type="tel"
-            class="form-input"
-          />
-        </div>
-  
-        <div class="form-group">
-          <label for="cv">CV <span class="required">*</span></label>
-          <input
-            id="cv"
-            type="file"
-            @change="handleFileUpload('cv', $event)"
-            accept=".pdf,.doc,.docx"
-            required
-            class="form-input"
-          />
-        </div>
-  
-        <div class="form-group">
-          <label for="coverLetter">Lettre de motivation</label>
-          <input
-            id="coverLetter"
-            type="file"
-            @change="handleFileUpload('coverLetter', $event)"
-            accept=".pdf,.doc,.docx"
-            class="form-input"
-          />
-        </div>
-  
-        <div class="form-group">
-          <label for="message">Message complémentaire</label>
-          <textarea
-            id="message"
-            v-model="formData.message"
-            rows="4"
-            class="form-input"
-          ></textarea>
-        </div>
-  
-        <p class="required-notice">Les champs marqués d'un astérisque (*) sont obligatoires.</p>
-  
-        <div class="action-buttons">
-          <button type="button" @click="handleCancel" class="btn-cancel">
-            Annuler
-          </button>
-          <button type="submit" class="btn-submit">
-            Envoyer ma candidature
-          </button>
-        </div>
-      </form>
-    </div>
-    <DefaultFooter />
-  </template>
-  
-  <script setup>
-  import { ref, defineProps } from 'vue';
-  import { useRouter } from 'vue-router';
-  import DefaultFooter from "./footers/FooterDefault.vue";
-  
-  const props = defineProps({
-    offer: {
-      type: Object,
-      required: true
+  <div class="application-form">
+    <h1 class="form-title">Postuler - {{ offer?.title }}</h1>
+    
+    <form @submit.prevent="handleSubmit" class="form-content">
+      <div class="form-group">
+        <label for="cv">CV <span class="required">*</span></label>
+        <input
+          id="cv"
+          type="file"
+          @change="handleFileUpload('cv', $event)"
+          accept=".pdf,.doc,.docx"
+          required
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="coverLetter">Lettre de motivation</label>
+        <input
+          id="coverLetter"
+          type="file"
+          @change="handleFileUpload('coverLetter', $event)"
+          accept=".pdf,.doc,.docx"
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="message">Message complémentaire</label>
+        <textarea
+          id="message"
+          v-model="formData.message"
+          rows="4"
+          class="form-input"
+        ></textarea>
+      </div>
+
+      <p class="required-notice">Les champs marqués d'un astérisque (*) sont obligatoires.</p>
+
+      <div class="action-buttons">
+        <button type="button" @click="handleCancel" class="btn-cancel">
+          Annuler
+        </button>
+        <button type="submit" class="btn-submit">
+          Envoyer ma candidature
+        </button>
+      </div>
+    </form>
+  </div>
+  <DefaultFooter />
+</template>
+
+<script setup>
+import { ref, defineProps } from 'vue';
+import { useRouter } from 'vue-router';
+import DefaultFooter from "./footers/FooterDefault.vue";
+import { createApplication } from '@/apiClient';
+
+const props = defineProps({
+  offer: {
+    type: Object,
+    required: true
+  }
+});
+
+const router = useRouter();
+
+const formData = ref({
+  cv: null,
+  coverLetter: null,
+  message: ''
+});
+
+const successMessage = ref('');
+const errorMessage = ref('');
+
+const handleFileUpload = (type, event) => {
+  const file = event.target.files[0];
+  if (file) {
+    formData.value[type] = file;
+  }
+};
+
+const handleSubmit = async () => {
+  successMessage.value = '';
+  errorMessage.value = '';
+
+  try {
+    const form = new FormData();
+    form.append('job_offer_id', props.offer.id);
+    form.append('cv', formData.value.cv);
+    if (formData.value.coverLetter) {
+      form.append('cover_letter', formData.value.coverLetter);
     }
-  });
-  
-  const router = useRouter();
-  
-  const formData = ref({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    cv: null,
-    coverLetter: null,
-    message: ''
-  });
-  
-  const handleFileUpload = (type, event) => {
-    const file = event.target.files[0];
-    if (file) {
-      formData.value[type] = file;
+    if (formData.value.message) {
+      form.append('message', formData.value.message);
     }
-  };
-  
-  const handleSubmit = async () => {
-    try {
-      // Ici, ajoutez la logique pour envoyer les données du formulaire
-      console.log('Données du formulaire:', formData.value);
-      
-      // Redirection vers le dashboard après soumission réussie
+
+    console.log("Données envoyées :", Object.fromEntries(form.entries())); // Vérifie les données envoyées
+
+    const response = await createApplication(form);
+    console.log('Réponse API :', response); // Voir la réponse du backend
+
+    successMessage.value = 'Candidature envoyée avec succès !';
+    
+    setTimeout(() => {
       router.push('/candidate/dashboard');
-    } catch (error) {
-      console.error('Erreur lors de l\'envoi de la candidature:', error);
-    }
-  };
-  
-  const handleCancel = () => {
-    router.push('/candidate/dashboard');
-  };
-  </script>
+    }, 2000);
+  } catch (error) {
+    console.error("Erreur lors de l'envoi :", error);
+    errorMessage.value = error?.response?.data?.error || "Erreur lors de l'envoi de la candidature.";
+  }
+};
+
+
+
+const handleCancel = () => {
+  router.push('/candidate/dashboard');
+};
+</script>
+
   
 <style scoped>
   .application-form {

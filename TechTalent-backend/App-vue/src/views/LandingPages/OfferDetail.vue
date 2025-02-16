@@ -77,7 +77,7 @@
         <h2>Chargement de l'offre...</h2>
       </div>
     </div>
-  </template>
+</template>
   
 <script setup>
 import { ref, onMounted } from 'vue';

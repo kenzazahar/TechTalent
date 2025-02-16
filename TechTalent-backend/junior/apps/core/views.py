@@ -10,6 +10,7 @@ import json
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ObjectDoesNotExist
 from .models import JobOffer
+from .models import Application
 from django.core.files.base import ContentFile
 import base64
 
@@ -639,4 +640,129 @@ def api_get_all_published_offers(request):
         return JsonResponse({'error': str(e)}, status=400)
     
 
+@require_http_methods(["POST"])
+@csrf_exempt
+@login_required
+def api_create_application(request):
+    try:
+        print("Requête reçue : ", request.POST.dict())  # Affiche les données envoyées
+        print("Fichiers reçus : ", request.FILES)  # Affiche les fichiers envoyés
+
+        data = request.POST.dict()
+        files = request.FILES
+
+        # Vérification des paramètres obligatoires
+        if 'job_offer_id' not in data or 'cv' not in files:
+            print("Données manquantes !")
+            return JsonResponse({'error': 'job_offer_id et cv sont obligatoires'}, status=400)
+
+        student = Student.objects.get(user=request.user)
+        job_offer = JobOffer.objects.get(id=data['job_offer_id'])
+
+        application = Application(
+            student=student,
+            job_offer=job_offer,
+            cv=files['cv'],
+            cover_letter=files.get('cover_letter'),
+            message=data.get('message', '')
+        )
+        application.save()
+
+        print("✅ Candidature créée avec succès !")
+        return JsonResponse({'message': 'Candidature soumise avec succès', 'id': application.id})
+
+    except Exception as e:
+        print("Erreur API :", str(e))  # Affiche l'erreur côté serveur
+        return JsonResponse({'error': str(e)}, status=400)
+
+@require_http_methods(["GET"])
+@csrf_exempt
+@login_required
+def api_get_company_applications(request, offer_id):
+    try:
+        job_offer = JobOffer.objects.get(id=offer_id, company=request.user.profile.company)
+        applications = Application.objects.filter(job_offer=job_offer)
+
+        applications_data = [{
+            'id': app.id,
+            'student_nom': app.student.nom,
+            'student_prenom': app.student.prenom,
+            'student_email': app.student.user.email,
+            'student_telephone': app.student.numero_telephone,
+            'application_date': app.application_date,
+            'status': app.status,
+            'cv': request.build_absolute_uri(app.cv.url),
+            'cover_letter': request.build_absolute_uri(app.cover_letter.url) if app.cover_letter else null
+        } for app in applications]
+
+        return JsonResponse({'applications': applications_data})
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
     
+
+@require_http_methods(["PATCH"])
+@csrf_exempt
+@login_required
+def api_update_application_status(request, application_id):
+    try:
+        data = json.loads(request.body)
+        application = Application.objects.get(id=application_id, job_offer__company=request.user.profile.company)
+        application.status = data['status']
+        application.save()
+
+        return JsonResponse({'message': 'Statut mis à jour avec succès'})
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    
+
+@require_http_methods(["GET"])
+@csrf_exempt
+@login_required
+def api_get_student_applications(request):
+    try:
+        student = Student.objects.get(user=request.user)
+        applications = Application.objects.filter(student=student)
+
+        applications_data = [{
+            'id': app.id,
+            'job_title': app.job_offer.title,
+            'company_name': app.job_offer.company.nom_societe,
+            'company_logo': request.build_absolute_uri(app.job_offer.company.logo.url) if app.job_offer.company.logo else None,  # Ajout du logo
+            'salary': app.job_offer.salary,  # Ajout du salaire
+            'location': app.job_offer.location,  # Ajout de la localisation
+            'contract_type': app.job_offer.contract_type,  # Ajout du type de contrat
+            'application_date': app.application_date,
+            'status': app.status,
+            'cv_url': request.build_absolute_uri(app.cv.url),
+            'cover_letter_url': request.build_absolute_uri(app.cover_letter.url) if app.cover_letter else None,
+            'message': app.message
+        } for app in applications]
+
+        return JsonResponse({'applications': applications_data})
+
+    except Student.DoesNotExist:
+        return JsonResponse({'error': 'Étudiant non trouvé'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@require_http_methods(["DELETE"])
+@csrf_exempt
+@login_required
+def api_delete_application(request, application_id):
+    try:
+        application = Application.objects.get(id=application_id, student__user=request.user)
+        application.delete()
+        return JsonResponse({'message': 'Candidature supprimée avec succès'})
+
+    except Application.DoesNotExist:
+        return JsonResponse({'error': 'Candidature non trouvée'}, status=404)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    
+    
+

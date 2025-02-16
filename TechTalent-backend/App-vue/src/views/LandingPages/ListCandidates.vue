@@ -1,174 +1,137 @@
 <template>
-    <div class="flex">
-      <Sidebar />
-      <div class="main-content">
-        <div class="container">
-          <h2 class="title">Liste des candidatures</h2>
-          
-          <div class="filters">
-            <input v-model="searchQuery" placeholder="Rechercher..." class="search" />
-            <select v-model="statusFilter" class="filter">
-              <option value="all">Tous les statuts</option>
-              <option v-for="(label, status) in statusLabels" :key="status" :value="status">
-                {{ label }}
-              </option>
-            </select>
-          </div>
-  
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Nom complet</th>
-                  <th>Email</th>
-                  <th>Téléphone</th>
-                  <th>Date de candidature</th>
-                  <th>Documents</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="candidate in filteredCandidates" :key="candidate.id">
-                  <td>{{ candidate.firstName }} {{ candidate.lastName }}</td>
-                  <td>{{ candidate.email }}</td>
-                  <td>{{ candidate.phone }}</td>
-                  <td>{{ formatDate(candidate.applicationDate) }}</td>
-                  <td>
-                    <div class="flex gap-2">
-                        <router-link 
-        v-if="candidate.cv" 
-        :to="{ name: 'CandidateCV', params: { id: candidate.id }}"
-        class="doc-link"
-      >
-        <i class="fas fa-file-pdf"></i> CV
-      </router-link>
-      <a v-if="candidate.coverLetter" :href="candidate.coverLetter" class="doc-link">
-        <i class="fas fa-file-alt"></i> LM
-      </a>
-    </div>
-  </td>
-                  <td>
-                    <span :class="['status', candidate.status]">
-                      {{ statusLabels[candidate.status] }}
-                    </span>
-                  </td>
-                  <td>
-                    <div class="actions">
-                      <select v-model="candidate.status" @change="updateStatus(candidate.id, $event)" class="action-select">
-                        <option v-for="(label, status) in statusLabels" :key="status" :value="status">
-                          {{ label }}
-                        </option>
-                      </select>
-                      <button @click="contactCandidate(candidate)" class="btn-contact">
-                        <i class="fas fa-paper-plane"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+  <div class="flex">
+    <Sidebar />
+    <div class="main-content">
+      <div class="container">
+        <h2 class="title">Liste des candidatures</h2>
+
+        <div class="filters">
+          <input v-model="searchQuery" placeholder="Rechercher..." class="search" />
+          <select v-model="statusFilter" class="filter">
+            <option value="all">Tous les statuts</option>
+            <option v-for="(label, status) in statusLabels" :key="status" :value="status">
+              {{ label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom complet</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+                <th>Date de candidature</th>
+                <th>Documents</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="candidate in filteredCandidates" :key="candidate.id">
+                <td>{{ candidate.student_nom }} {{ candidate.student_prenom }}</td>
+                <td>{{ candidate.student_email }}</td>
+                <td>{{ candidate.student_telephone }}</td>
+                <td>{{ formatDate(candidate.application_date) }}</td>
+                <td>
+                  <div class="flex gap-2">
+                    <a v-if="candidate.cv" :href="candidate.cv" class="doc-link">
+                      <i class="fas fa-file-pdf"></i> CV
+                    </a>
+                    <a v-if="candidate.cover_letter" :href="candidate.cover_letter" class="doc-link">
+                      <i class="fas fa-file-alt"></i> LM
+                    </a>
+                  </div>
+                </td>
+                <td>
+                  <span :class="['status', candidate.status]">
+                    {{ statusLabels[candidate.status] }}
+                  </span>
+                </td>
+                <td>
+                  <div class="actions">
+                    <select v-model="candidate.status" @change="updateStatus(candidate.id, $event)" class="action-select">
+                      <option v-for="(label, status) in statusLabels" :key="status" :value="status">
+                        {{ label }}
+                      </option>
+                    </select>
+                    <button @click="contactCandidate(candidate)" class="btn-contact">
+                      <i class="fas fa-paper-plane"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, computed } from 'vue'
-  import Sidebar from './components/Sidebar.vue'
-  
-  const searchQuery = ref('')
-  const statusFilter = ref('all')
-  
-  const statusLabels = {
-    pending: 'En attente',
-    reviewing: "En cours d'examen",
-    interviewed: 'Entretien effectué',
-    accepted: 'Acceptée',
-    rejected: 'Refusée'
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import Sidebar from './components/Sidebar.vue';
+import { useRoute } from 'vue-router';
+import { getCompanyApplications, updateApplicationStatus } from '@/apiClient';
+
+const route = useRoute();
+const offerId = route.params.id;  // Récupère l'ID de l'offre depuis l'URL
+
+const searchQuery = ref('');
+const statusFilter = ref('all');
+const applications = ref([]);
+
+const statusLabels = {
+  pending: 'En attente',
+  reviewing: "En cours d'examen",
+  interviewed: 'Entretien effectué',
+  accepted: 'Acceptée',
+  rejected: 'Refusée'
+};
+
+onMounted(async () => {
+  try {
+    const response = await getCompanyApplications(offerId);
+    applications.value = response.applications;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des candidatures:', error);
   }
-  
-  const candidates = ref([
-  {
-    id: 1,
-    firstName: 'Youssef',
-    lastName: 'El Amrani',
-    email: 'youssef.elamrani@gmail.com',
-    phone: '+212 661-234567',
-    cv: '/docs/cv_elamrani.pdf',
-    coverLetter: '/docs/lm_elamrani.pdf',
-    status: 'pending',
-    applicationDate: '2024-01-05'
-  },
-  {
-    id: 2,
-    firstName: 'Fatima',
-    lastName: 'Benkirane',
-    email: 'f.benkirane@outlook.com',
-    phone: '+212 662-345678',
-    cv: '/docs/cv_benkirane.pdf',
-    coverLetter: '/docs/lm_benkirane.pdf',
-    status: 'reviewing',
-    applicationDate: '2024-01-08'
-  },
-  {
-    id: 3,
-    firstName: 'Karim',
-    lastName: 'Ouazzani',
-    email: 'k.ouazzani@yahoo.com',
-    phone: '+212 663-456789',
-    cv: '/docs/cv_ouazzani.pdf',
-    coverLetter: '/docs/lm_ouazzani.pdf',
-    status: 'interviewed',
-    applicationDate: '2024-01-10'
-  },
-  {
-    id: 4,
-    firstName: 'Nadia',
-    lastName: 'Tazi',
-    email: 'nadia.tazi@gmail.com',
-    phone: '+212 664-567890',
-    cv: '/docs/cv_tazi.pdf',
-    coverLetter: '/docs/lm_tazi.pdf',
-    status: 'accepted',
-    applicationDate: '2024-01-12'
-  },
-  {
-    id: 5,
-    firstName: 'Hassan',
-    lastName: 'El Fassi',
-    email: 'h.elfassi@gmail.com',
-    phone: '+212 665-678901',
-    cv: '/docs/cv_elfassi.pdf',
-    coverLetter: '/docs/lm_elfassi.pdf',
-    status: 'rejected',
-    applicationDate: '2024-01-15'
+});
+
+const filteredCandidates = computed(() => {
+  return applications.value.filter(candidate => {
+    const matchesSearch = 
+      `${candidate.student_nom} ${candidate.student_prenom}`.toLowerCase()
+      .includes(searchQuery.value.toLowerCase());
+    const matchesStatus = statusFilter.value === 'all' || candidate.status === statusFilter.value;
+    return matchesSearch && matchesStatus;
+  });
+});
+
+const formatDate = (date) => new Date(date).toLocaleDateString('fr-FR');
+
+const updateStatus = async (candidateId, event) => {
+  try {
+    const newStatus = event.target.value;
+    await updateApplicationStatus(candidateId, newStatus);
+    const candidate = applications.value.find(app => app.id === candidateId);
+    if (candidate) {
+      candidate.status = newStatus;
+    }
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du statut:', error);
   }
-  ])
+};
+
+const contactCandidate = (candidate) => {
+  console.log(`Contacter ${candidate.student_nom} ${candidate.student_prenom}`);
+};
+</script>
+
   
-  const filteredCandidates = computed(() => {
-    return candidates.value.filter(candidate => {
-      const matchesSearch = 
-        `${candidate.firstName} ${candidate.lastName}`.toLowerCase()
-        .includes(searchQuery.value.toLowerCase())
-      const matchesStatus = statusFilter.value === 'all' || candidate.status === statusFilter.value
-      return matchesSearch && matchesStatus
-    })
-  })
-  
-  const formatDate = (date) => new Date(date).toLocaleDateString('fr-FR')
-  
-  const updateStatus = (candidateId, event) => {
-    console.log(`Statut mis à jour pour ${candidateId}: ${event.target.value}`)
-  }
-  
-  const contactCandidate = (candidate) => {
-    console.log(`Contacter ${candidate.firstName} ${candidate.lastName}`)
-  }
-  </script>
-  
-  <style scoped>
+<style scoped>
   .main-content {
     margin-left: 260px;
     min-height: 100vh;
@@ -274,4 +237,4 @@
   .doc-link:hover {
     color: #111827;
   }
-  </style>
+</style>

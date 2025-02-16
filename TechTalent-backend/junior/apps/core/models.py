@@ -93,3 +93,29 @@ class JobOffer(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.company.nom_societe}"
+    
+
+
+class Application(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'En attente'),
+        ('reviewing', "En cours d'examen"),
+        ('interviewed', 'Entretien effectué'),
+        ('accepted', 'Acceptée'),
+        ('rejected', 'Refusée'),
+    ]
+
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='applications')
+    job_offer = models.ForeignKey(JobOffer, on_delete=models.CASCADE, related_name='applications')
+    application_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    cv = models.FileField(upload_to='applications/cv/')
+    cover_letter = models.FileField(upload_to='applications/cover_letters/', blank=True, null=True)
+    message = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.student.nom} {self.student.prenom} - {self.job_offer.title}"
+
+    class Meta:
+        ordering = ['-application_date']
+        

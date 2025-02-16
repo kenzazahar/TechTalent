@@ -1,207 +1,179 @@
-<!-- MyApplications.vue -->
 <template>
-    <div class="layout">
-      <Sidebar />
-      <div class="main-content">
-        <div class="applications-dashboard">
-          <!-- En-tête avec stats -->
-          <div class="stats-grid">
-            <div class="stat-card">
-              <i class="fas fa-paper-plane stat-icon"></i>
-              <div class="stat-info">
-                <span class="stat-value">{{ totalApplications }}</span>
-                <span class="stat-label">Candidatures totales</span>
-              </div>
-            </div>
-            <div class="stat-card">
-              <i class="fas fa-clock stat-icon"></i>
-              <div class="stat-info">
-                <span class="stat-value">{{ pendingApplications }}</span>
-                <span class="stat-label">En attente</span>
-              </div>
-            </div>
-            <div class="stat-card">
-              <i class="fas fa-check-circle stat-icon"></i>
-              <div class="stat-info">
-                <span class="stat-value">{{ acceptedApplications }}</span>
-                <span class="stat-label">Acceptées</span>
-              </div>
-            </div>
-            <div class="stat-card">
-              <i class="fas fa-times-circle stat-icon"></i>
-              <div class="stat-info">
-                <span class="stat-value">{{ rejectedApplications }}</span>
-                <span class="stat-label">Refusées</span>
-              </div>
+  <div class="layout">
+    <Sidebar />
+    <div class="main-content">
+      <div class="applications-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <i class="fas fa-paper-plane stat-icon"></i>
+            <div class="stat-info">
+              <span class="stat-value">{{ totalApplications }}</span>
+              <span class="stat-label">Candidatures totales</span>
             </div>
           </div>
-  
-          <!-- Filtres -->
-          <div class="filters-section">
-            <div class="search-bar">
-              <i class="fas fa-search search-icon"></i>
-              <input 
-                type="text" 
-                v-model="searchQuery"
-                placeholder="Rechercher une candidature..." 
-                class="search-input"
-              />
-            </div>
-            <div class="filter-buttons">
-              <button 
-                v-for="status in ['Toutes', 'En attente', 'Entretien', 'Acceptée', 'Refusée']"
-                :key="status"
-                :class="['filter-btn', { active: currentStatus === status }]"
-                @click="currentStatus = status"
-              >
-                {{ status }}
-              </button>
+          <div class="stat-card">
+            <i class="fas fa-clock stat-icon"></i>
+            <div class="stat-info">
+              <span class="stat-value">{{ pendingApplications }}</span>
+              <span class="stat-label">En attente</span>
             </div>
           </div>
-  
-          <!-- Liste des candidatures -->
-          <div class="applications-list">
-            <div v-for="application in filteredApplications" 
-                 :key="application.id" 
-                 class="application-card"
+          <div class="stat-card">
+            <i class="fas fa-check-circle stat-icon"></i>
+            <div class="stat-info">
+              <span class="stat-value">{{ acceptedApplications }}</span>
+              <span class="stat-label">Acceptées</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <i class="fas fa-times-circle stat-icon"></i>
+            <div class="stat-info">
+              <span class="stat-value">{{ rejectedApplications }}</span>
+              <span class="stat-label">Refusées</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="filters-section">
+          <div class="search-bar">
+            <i class="fas fa-search search-icon"></i>
+            <input 
+              type="text" 
+              v-model="searchQuery"
+              placeholder="Rechercher une candidature..." 
+              class="search-input"
+            />
+          </div>
+          <div class="filter-buttons">
+            <button 
+              v-for="status in ['Toutes', 'En attente', 'Entretien', 'Acceptée', 'Refusée']"
+              :key="status"
+              :class="['filter-btn', { active: currentStatus === status }]"
+              @click="currentStatus = status"
             >
-              <div class="company-info">
-                <img :src="application.companyLogo" :alt="application.companyName" class="company-logo"/>
-                <div>
-                  <h3 class="job-title">{{ application.jobTitle }}</h3>
-                  <p class="company-name">{{ application.companyName }}</p>
-                </div>
-              </div>
-  
-              <div class="application-details">
-                <div class="detail-item">
-                  <i class="fas fa-calendar"></i>
-                  <span>Postulé le {{ formatDate(application.applicationDate) }}</span>
-                </div>
-                <div class="detail-item">
-                  <i class="fas fa-map-marker-alt"></i>
-                  <span>{{ application.location }}</span>
-                </div>
-              </div>
-  
-              <div class="application-status">
-                <span :class="['status-badge', application.status.toLowerCase()]">
-                  {{ application.status }}
-                </span>
-              </div>
-  
-              <div class="application-actions">
-                <button class="action-btn view-btn" @click="viewApplication(application.id)">
-                  <i class="fas fa-eye"></i>
-                  Voir détails
-                </button>
-                <button v-if="application.status === 'En attente'" 
-                        class="action-btn withdraw-btn"
-                        @click="withdrawApplication(application.id)"
-                >
-                  <i class="fas fa-times"></i>
-                  Retirer
-                </button>
-              </div>
-            </div>
-          </div>
-  
-          <!-- Message si aucune candidature -->
-          <div v-if="filteredApplications.length === 0" class="no-applications">
-            <i class="fas fa-folder-open no-data-icon"></i>
-            <p>Aucune candidature ne correspond à vos critères</p>
-            <button class="browse-jobs-btn" @click="$router.push('/candidate/dashboard/offers')">
-              Parcourir les offres
+              {{ status }}
             </button>
           </div>
         </div>
+
+        <div class="applications-list">
+          <div v-for="application in filteredApplications" 
+               :key="application.id" 
+               class="application-card"
+          >
+            <div class="company-info">
+              <img :src="application.job_offer.company.logo_societe" :alt="application.job_offer.company.nom_societe" class="company-logo"/>
+              <div>
+                <h3 class="job-title">{{ application.job_offer.title }}</h3>
+                <p class="company-name">{{ application.job_offer.company.nom_societe }}</p>
+              </div>
+            </div>
+
+            <div class="application-details">
+              <div class="detail-item">
+                <i class="fas fa-calendar"></i>
+                <span>Postulé le {{ formatDate(application.application_date) }}</span>
+              </div>
+              <div class="detail-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>{{ application.job_offer.location }}</span>
+              </div>
+            </div>
+
+            <div class="application-status">
+              <span :class="['status-badge', application.status.toLowerCase()]">
+                {{ application.status }}
+              </span>
+            </div>
+
+            <div class="application-actions">
+              <button class="action-btn view-btn" @click="viewApplication(application.id)">
+                <i class="fas fa-eye"></i>
+                Voir détails
+              </button>
+              <button v-if="application.status === 'pending'" 
+                      class="action-btn withdraw-btn"
+                      @click="withdrawApplication(application.id)"
+              >
+                <i class="fas fa-times"></i>
+                Retirer
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="filteredApplications.length === 0" class="no-applications">
+          <i class="fas fa-folder-open no-data-icon"></i>
+          <p>Aucune candidature ne correspond à vos critères</p>
+          <button class="browse-jobs-btn" @click="$router.push('/candidate/dashboard/offers')">
+            Parcourir les offres
+          </button>
+        </div>
       </div>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, computed } from 'vue';
-  import { useRouter } from 'vue-router';
-  import Sidebar from './components/Sidebar.vue';
-  
-  const router = useRouter();
-  const searchQuery = ref('');
-  const currentStatus = ref('Toutes');
-  
-  // Données simulées
-  const applications = ref([
-    {
-      id: 1,
-      jobTitle: 'Développeur Full Stack',
-      companyName: 'TechCorp',
-      companyLogo: '/src/assets/img/company1.png',
-      applicationDate: '2024-01-15',
-      location: 'Casablanca',
-      status: 'En attente'
-    },
-    {
-      id: 2,
-      jobTitle: 'UX Designer',
-      companyName: 'DesignStudio',
-      companyLogo: '/src/assets/img/company2.png',
-      applicationDate: '2024-01-10',
-      location: 'Rabat',
-      status: 'Entretien'
-    },
-    {
-      id: 3,
-      jobTitle: 'Product Manager',
-      companyName: 'InnovTech',
-      companyLogo: '/src/assets/img/company3.png',
-      applicationDate: '2024-01-05',
-      location: 'Tanger',
-      status: 'Acceptée'
-    }
-  ]);
-  
-  // Statistiques calculées
-  const totalApplications = computed(() => applications.value.length);
-  const pendingApplications = computed(() => 
-    applications.value.filter(app => app.status === 'En attente').length
-  );
-  const acceptedApplications = computed(() => 
-    applications.value.filter(app => app.status === 'Acceptée').length
-  );
-  const rejectedApplications = computed(() => 
-    applications.value.filter(app => app.status === 'Refusée').length
-  );
-  
-  // Filtrage des candidatures
-  const filteredApplications = computed(() => {
-    return applications.value.filter(app => {
-      const matchesSearch = app.jobTitle.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                           app.companyName.toLowerCase().includes(searchQuery.value.toLowerCase());
-      const matchesStatus = currentStatus.value === 'Toutes' || app.status === currentStatus.value;
-      return matchesSearch && matchesStatus;
-    });
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import Sidebar from './components/Sidebar.vue';
+import { getStudentApplications } from '@/apiClient';
+
+const router = useRouter();
+const searchQuery = ref('');
+const currentStatus = ref('Toutes');
+const applications = ref([]);
+
+onMounted(async () => {
+  try {
+    const response = await getStudentApplications();
+    applications.value = response.applications;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des candidatures:', error);
+  }
+});
+
+const totalApplications = computed(() => applications.value.length);
+const pendingApplications = computed(() => 
+  applications.value.filter(app => app.status === 'pending').length
+);
+const acceptedApplications = computed(() => 
+  applications.value.filter(app => app.status === 'accepted').length
+);
+const rejectedApplications = computed(() => 
+  applications.value.filter(app => app.status === 'rejected').length
+);
+
+const filteredApplications = computed(() => {
+  return applications.value.filter(app => {
+    const matchesSearch = app.job_offer.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+                         app.job_offer.company.nom_societe.toLowerCase().includes(searchQuery.value.toLowerCase());
+    const matchesStatus = currentStatus.value === 'Toutes' || app.status === currentStatus.value;
+    return matchesSearch && matchesStatus;
   });
+});
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
+const viewApplication = (id) => {
+  router.push(`/candidate/dashboard/applications/${id}`);
+};
+
+const withdrawApplication = (id) => {
+  if (confirm('Êtes-vous sûr de vouloir retirer cette candidature ?')) {
+    applications.value = applications.value.filter(app => app.id !== id);
+  }
+};
+</script>
   
-  // Fonctions
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-  
-  const viewApplication = (id) => {
-    router.push(`/candidate/dashboard/applications/${id}`);
-  };
-  
-  const withdrawApplication = (id) => {
-    if (confirm('Êtes-vous sûr de vouloir retirer cette candidature ?')) {
-      applications.value = applications.value.filter(app => app.id !== id);
-    }
-  };
-  </script>
-  
-  <style scoped>
+<style scoped>
   .layout {
     display: flex;
   }
@@ -447,4 +419,4 @@
   .browse-jobs-btn:hover {
     background: #1f1f24;
   }
-  </style>
+</style>

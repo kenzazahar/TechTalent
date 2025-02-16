@@ -54,7 +54,7 @@ class JobApplication(models.Model):
         ('accepted', 'Accepted'),
         ('rejected', 'Rejected'),
     ]
-    student = models.ForeignKey('core.Student', related_name='applications', on_delete=models.CASCADE)
+    student = models.ForeignKey('core.Student', on_delete=models.CASCADE, related_name='store_applications')
     job_offer = models.ForeignKey(JobOffer, related_name='applications', on_delete=models.CASCADE)
     applied_on = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='waiting')

@@ -242,4 +242,61 @@ export const getAllPublishedOffers = async () => {
   }
 };
 
+export const createApplication = async (formData) => {
+  try {
+    const response = await apiClient.post('/applications/create/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      withCredentials: true, // 🔹 Ajoute ceci pour s'assurer que les cookies d'auth sont envoyés
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Erreur API (createApplication) :', error.response?.data || error);
+    throw error.response ? error.response.data : error;
+  }
+};
+
+
+export const getCompanyApplications = async (offerId) => {
+  try {
+    const response = await apiClient.get(`/applications/company/${offerId}/`);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des candidatures pour l\'offre :', error);
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const updateApplicationStatus = async (applicationId, status) => {
+  try {
+    const response = await apiClient.patch(`/applications/update-status/${applicationId}/`, { status });
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du statut de la candidature :', error);
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const getStudentApplications = async () => {
+  try {
+    const response = await apiClient.get('/applications/student/');
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des candidatures de l\'étudiant :', error);
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const deleteApplication = async (applicationId) => {
+  try {
+    const response = await apiClient.delete(`/applications/${applicationId}/`)
+    return response.data
+  } catch (error) {
+    console.error('Erreur API (deleteApplication) :', error.response?.data || error)
+    throw error.response ? error.response.data : error
+  }
+}
+
+
 export default apiClient;
