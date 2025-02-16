@@ -92,15 +92,18 @@ export const useJobOffersStore = defineStore('jobOffers', {
       this.loading = true;
       this.error = null;
       try {
-        console.log("Mise à jour de l'offre :", updatedOffer); // Debug
+        console.log("Début de la mise à jour de l'offre:", updatedOffer.id);
         const response = await updateJobOffer(updatedOffer.id, updatedOffer);
-        console.log("Réponse de l'API :", response); // Debug
-
+        console.log("Mise à jour réussie:", response);
+        
         const index = this.publishedOffers.findIndex(offer => offer.id === updatedOffer.id);
         if (index !== -1) {
           this.publishedOffers[index] = response;
+          console.log("Store mis à jour avec succès");
         }
+        return response;
       } catch (error) {
+        console.error("Erreur dans le store:", error);
         this.error = error.message || 'Une erreur est survenue lors de la mise à jour';
         throw error;
       } finally {

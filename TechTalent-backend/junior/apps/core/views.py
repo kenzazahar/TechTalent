@@ -566,6 +566,11 @@ def api_delete_job_offer(request, offer_id):
 @csrf_exempt
 @login_required
 def api_update_job_offer(request, offer_id):
+    if request.method == "OPTIONS":
+        response = HttpResponse()
+        response["Access-Control-Allow-Methods"] = "PATCH, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
+        return response
     try:
         offer = JobOffer.objects.get(id=offer_id, company=request.user.profile.company)
         data = json.loads(request.body)
@@ -774,4 +779,3 @@ def api_delete_application(request, application_id):
         return JsonResponse({'error': str(e)}, status=400)
     
     
-

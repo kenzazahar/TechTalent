@@ -98,21 +98,21 @@ const handleFileUpload = (event) => {
 };
 
 const handleSave = async () => {
-  console.log("handleSave appelé"); // Debug
   if (!validateForm()) {
-    console.log("Validation du formulaire échouée"); // Debug
+    console.log("Validation échouée");
     return;
   }
 
   try {
-    console.log("Données envoyées :", formData); // Debug
+    console.log("Tentative de sauvegarde avec les données:", formData);
     await jobOffersStore.updatePublishedOffer({
       ...formData,
       id: parseInt(route.params.id)
     });
+    console.log("Sauvegarde réussie");
     router.push({ name: 'PublishOfferDetail', params: { id: route.params.id } });
   } catch (error) {
-    console.error('Erreur lors de la mise à jour de l\'offre:', error);
+    console.error('Erreur lors de la mise à jour:', error);
   }
 };
 

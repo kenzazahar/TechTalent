@@ -88,13 +88,13 @@ defineProps({
       <div class="container">
         <div class="row justify-content-center">
           <div class="col-lg-9 text-center mx-auto my-auto">
-            <h3 class="text-white">
+            <h2 class="text-white">
               Votre avenir commence avec <span class="text-white" id="typed"></span>
-            </h3>
+            </h2>
             <div id="typed-strings">
-              <h3>Inspiration</h3>
-              <h3>Excellence</h3>
-              <h3>Innovation</h3>
+              <h2>Inspiration</h2>
+              <h2>Excellence</h2>
+              <h2>Innovation</h2>
             </div>
             <p class="lead mb-2 text-white opacity-8 custom-text-sizes">
               Rejoignez TechTalent, la plateforme qui transforme les ambitions en réalisations.
@@ -102,10 +102,10 @@ defineProps({
             <p class="lead mb-4 text-white opacity-8 custom-text-sizes">
               Découvrez, connectez, réussissez !
             </p>
-            <RouterLink to="/inscription-candidat" class="btn bg-white text-dark mx-2" style=" width: 150px; height: 31px; font-size: 9px;  align-items: center; justify-content: center;">
+            <RouterLink to="/inscription-candidat" class="btn bg-white text-dark mx-2" style=" width: 180px; height: 35px; font-size: 11px;  align-items: center; justify-content: center;">
               Inscription Candidat
             </RouterLink>
-          <RouterLink to="/inscription_entreprise" class="btn bg-white text-dark mx-2" style=" width: 159px; height: 31px; font-size: 9px;  align-items: center; justify-content: center;">
+          <RouterLink to="/inscription_entreprise" class="btn bg-white text-dark mx-2" style=" width: 183px; height: 35px; font-size: 11px;  align-items: center; justify-content: center;">
             Inscription Entreprise
           </RouterLink>
           </div>
@@ -431,7 +431,7 @@ defineProps({
   color: #333333; /* Noir */
 }
 .custom-text-size {
-  font-size: 0.84rem; /* Par exemple, une taille de texte plus petite que .lead */
+  font-size: 0.9rem; /* Par exemple, une taille de texte plus petite que .lead */
 }
 .custom-text-sizes {
   font-size: 1.03rem; /* Par exemple, une taille de texte plus petite que .lead */

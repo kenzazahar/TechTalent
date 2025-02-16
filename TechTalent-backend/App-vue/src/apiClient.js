@@ -188,21 +188,12 @@ export const getDraftOffers = async () => {
   }
 };
 
-// Update an offer
-// Update an offer
+
 export const updateJobOffer = async (id, formData) => {
   try {
-    const form = new FormData();
-    Object.keys(formData).forEach(key => {
-      if (formData[key] !== null) {
-        form.append(key, formData[key]);
-      }
-    });
-
-    console.log("Données envoyées à l'API :", form); // Debug
-    const response = await apiClient.patch(`/api/job-offers/${id}/update/`, form, {
+    const response = await apiClient.patch(`/api/job-offers/${id}/update/`, formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': 'application/json',
       },
     });
     return response.data;
