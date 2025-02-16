@@ -13,19 +13,19 @@
           </div>
           <div class="status-card">
             <div class="status-count pending">
-              {{ applications.filter(app => app.status === 'En attente').length }}
+              {{ getPendingCount }}
             </div>
             <div class="status-label">En attente</div>
           </div>
           <div class="status-card">
             <div class="status-count accepted">
-              {{ applications.filter(app => app.status === 'Acceptée').length }}
+              {{ getAcceptedCount }}
             </div>
             <div class="status-label">Acceptées</div>
           </div>
           <div class="status-card">
             <div class="status-count rejected">
-              {{ applications.filter(app => app.status === 'Refusée').length }}
+              {{ getRejectedCount }}
             </div>
             <div class="status-label">Refusées</div>
           </div>
@@ -41,60 +41,52 @@
           />
           <select v-model="statusFilter" class="status-filter">
             <option value="all">Tous les statuts</option>
-            <option value="En attente">En attente</option>
-            <option value="En cours">En cours</option>
-            <option value="Acceptée">Acceptée</option>
-            <option value="Refusée">Refusée</option>
+            <option value="pending">En attente</option>
+            <option value="reviewing">En cours d'examen</option>
+            <option value="interviewed">Entretien effectué</option>
+            <option value="accepted">Acceptée</option>
+            <option value="rejected">Refusée</option>
           </select>
         </div>
 
         <!-- Liste des candidatures -->
-        <div class="applications-list">
-          <div v-for="(application, index) in filteredApplications" 
+        <div v-if="applications.length > 0" class="applications-list">
+          <div v-for="application in filteredApplications" 
                :key="application.id" 
                class="application-item"
           >
             <div class="application-header">
-              <h3>{{ application.jobTitle }}</h3>
-              <span :class="['status-tag', application.status.toLowerCase()]">
-                {{ application.status }}
+              <h3>{{ application.job_title }}</h3>
+              <span :class="['status-tag', application.status]">
+                {{ getStatusLabel(application.status) }}
               </span>
             </div>
 
             <div class="application-content">
               <div class="company-info">
-                <img :src="application.companyLogo" :alt="application.company" class="company-logo">
+                <img :src="application.company_logo || '/default-company-logo.png'" 
+                     :alt="application.company_name" 
+                     class="company-logo">
                 <div>
-                  <div class="company-name">{{ application.companyName }}</div>
+                  <div class="company-name">{{ application.company_name }}</div>
                   <div class="location">{{ application.location }}</div>
                 </div>
               </div>
 
               <div class="application-details">
                 <div class="detail-row">
-                  <span>Postuler le: {{ formatDate(application.applicationDate) }}</span>
+                  <span>Postuler le: {{ formatDate(application.application_date) }}</span>
                 </div>
                 <div class="detail-row">
-                  <span>Salaire: {{ application.salary }}</span>
+                  <span>Salaire: {{ application.salary || 'Non spécifié' }}</span>
                 </div>
                 <div class="detail-row">
-                  <span>Type de contrat: {{ application.contractType }}</span>
+                  <span>Type de contrat: {{ application.contract_type }}</span>
                 </div>
               </div>
             </div>
 
             <div class="application-actions">
-              <select v-if="canUpdateStatus(application)" 
-                      v-model="application.status" 
-                      @change="updateStatus(application.id, application.status)"
-                      class="action-btn"
-              >
-                <option value="En attente">En attente</option>
-                <option value="En cours">En cours</option>
-                <option value="Acceptée">Acceptée</option>
-                <option value="Refusée">Refusée</option>
-              </select>
-              
               <button v-if="canWithdraw(application)" 
                       class="action-btn withdraw"
                       @click="confirmWithdraw(application.id)"
@@ -106,7 +98,11 @@
         </div>
 
         <!-- Message si aucune candidature -->
-        <div v-if="filteredApplications.length === 0" class="no-results">
+        <div v-else class="no-results">
+          <p>Vous n'avez pas encore soumis de candidature</p>
+        </div>
+
+        <div v-if="applications.length > 0 && filteredApplications.length === 0" class="no-results">
           <p>Aucune candidature ne correspond à votre recherche</p>
         </div>
       </div>
@@ -117,31 +113,52 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import Sidebar from './components/SidebarCandidat.vue'
-import { getStudentApplications, updateApplicationStatus, deleteApplication } from '@/apiClient'
+import { getStudentApplications, deleteApplication } from '@/apiClient'
 
 const searchText = ref('')
 const statusFilter = ref('all')
 const applications = ref([])
+const loading = ref(false)
+const error = ref(null)
 
-onMounted(async () => {
-  try {
-    const response = await getStudentApplications();
-    console.log('Réponse de l\'API:', response);  // Vérifiez ici la structure des données
-    applications.value = response.applications;
-  } catch (error) {
-    console.error('Erreur lors de la récupération des candidatures:', error);
-  }
-})
+// Computed properties for statistics
+const getPendingCount = computed(() => 
+  applications.value.filter(app => app.status === 'pending').length
+)
+
+const getAcceptedCount = computed(() => 
+  applications.value.filter(app => app.status === 'accepted').length
+)
+
+const getRejectedCount = computed(() => 
+  applications.value.filter(app => app.status === 'rejected').length
+)
 
 const filteredApplications = computed(() => {
-  const matchesSearch = app => app.jobTitle.toLowerCase().includes(searchText.value.toLowerCase()) ||
-                               app.companyName.toLowerCase().includes(searchText.value.toLowerCase());
-  return applications.value.filter(app => matchesSearch(app));
-});
+  return applications.value.filter(app => {
+    const matchesSearch = 
+      app.job_title?.toLowerCase().includes(searchText.value.toLowerCase()) ||
+      app.company_name?.toLowerCase().includes(searchText.value.toLowerCase());
+    
+    const matchesStatus = statusFilter.value === 'all' || app.status === statusFilter.value;
+    
+    return matchesSearch && matchesStatus;
+  });
+})
 
-
+const getStatusLabel = (status) => {
+  const statusMap = {
+    'pending': 'En attente',
+    'reviewing': "En cours d'examen",
+    'interviewed': 'Entretien effectué',
+    'accepted': 'Acceptée',
+    'rejected': 'Refusée'
+  }
+  return statusMap[status] || status
+}
 
 const formatDate = (dateString) => {
+  if (!dateString) return ''
   return new Date(dateString).toLocaleDateString('fr-FR', {
     year: 'numeric',
     month: 'long',
@@ -149,23 +166,22 @@ const formatDate = (dateString) => {
   })
 }
 
-const canUpdateStatus = (application) => {
-  return ['En attente', 'En cours'].includes(application.status)
-}
-
 const canWithdraw = (application) => {
-  return ['En attente', 'En cours'].includes(application.status)
+  return ['pending', 'reviewing'].includes(application.status)
 }
 
-const updateStatus = async (applicationId, newStatus) => {
+const loadApplications = async () => {
+  loading.value = true
+  error.value = null
   try {
-    await updateApplicationStatus(applicationId, newStatus)
-    const application = applications.value.find(app => app.id === applicationId)
-    if (application) {
-      application.status = newStatus
-    }
-  } catch (error) {
-    console.error('Erreur lors de la mise à jour du statut:', error)
+    const response = await getStudentApplications()
+    applications.value = response.applications
+    console.log('Applications loaded:', applications.value)
+  } catch (err) {
+    error.value = 'Erreur lors du chargement des candidatures'
+    console.error('Error loading applications:', err)
+  } finally {
+    loading.value = false
   }
 }
 
@@ -176,11 +192,15 @@ const confirmWithdraw = async (applicationId) => {
       applications.value = applications.value.filter(app => app.id !== applicationId)
     } catch (error) {
       console.error('Erreur lors du retrait de la candidature:', error)
+      alert('Erreur lors du retrait de la candidature')
     }
   }
 }
-</script>
 
+onMounted(() => {
+  loadApplications()
+})
+</script>
 
 <style scoped>
 .layout {

@@ -723,29 +723,38 @@ def api_update_application_status(request, application_id):
 @login_required
 def api_get_student_applications(request):
     try:
+        print("DEBUG - User:", request.user.username)  # Ajoutez ce log
+        
         student = Student.objects.get(user=request.user)
+        print("DEBUG - Student found:", student)  # Ajoutez ce log
+        
         applications = Application.objects.filter(student=student)
+        print("DEBUG - Applications count:", applications.count())  # Ajoutez ce log
+        print("DEBUG - Applications:", list(applications.values()))  # Ajoutez ce log
 
         applications_data = [{
             'id': app.id,
             'job_title': app.job_offer.title,
             'company_name': app.job_offer.company.nom_societe,
-            'company_logo': request.build_absolute_uri(app.job_offer.company.logo.url) if app.job_offer.company.logo else None,  # Ajout du logo
-            'salary': app.job_offer.salary,  # Ajout du salaire
-            'location': app.job_offer.location,  # Ajout de la localisation
-            'contract_type': app.job_offer.contract_type,  # Ajout du type de contrat
+            'company_logo': request.build_absolute_uri(app.job_offer.company.logo_societe.url) if app.job_offer.company.logo_societe else None,
+            'salary': app.job_offer.salary,
+            'location': app.job_offer.location,
+            'contract_type': app.job_offer.contract_type,
             'application_date': app.application_date,
             'status': app.status,
             'cv_url': request.build_absolute_uri(app.cv.url),
             'cover_letter_url': request.build_absolute_uri(app.cover_letter.url) if app.cover_letter else None,
             'message': app.message
         } for app in applications]
-
+        
+        print("DEBUG - Final data:", applications_data)  # Ajoutez ce log
         return JsonResponse({'applications': applications_data})
 
     except Student.DoesNotExist:
+        print("DEBUG - Student.DoesNotExist for user:", request.user.username)
         return JsonResponse({'error': 'Étudiant non trouvé'}, status=404)
     except Exception as e:
+        print("DEBUG - Unexpected error:", str(e))
         return JsonResponse({'error': str(e)}, status=400)
 
 

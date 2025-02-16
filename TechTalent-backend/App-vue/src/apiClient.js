@@ -280,11 +280,13 @@ export const updateApplicationStatus = async (applicationId, status) => {
 
 export const getStudentApplications = async () => {
   try {
+    console.log('Fetching student applications...');
     const response = await apiClient.get('/applications/student/');
+    console.log('Response received:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Erreur lors de la récupération des candidatures de l\'étudiant :', error);
-    throw error.response ? error.response.data : error;
+    console.error('API error details:', error.response?.data);
+    throw error;
   }
 };
 
